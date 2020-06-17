@@ -4,12 +4,13 @@ import Enrollments from '../views/Enrollments.vue'
 
 Vue.use(VueRouter)
 
-  const routes = [
+const routes = [
   {
     path: '/',
     name: 'enrollments',
     component: Enrollments
   },
+
   {
     path: '/about',
     name: 'About',

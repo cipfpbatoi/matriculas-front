@@ -1,6 +1,5 @@
 import axios from 'axios';
 import store from '@/store';
-import {EventBus} from '@/services/eventBus.js';
 
 const DEBUG = process.env.NODE_ENV === 'development';
 const baseURL = process.env.VUE_APP_RUTA_API || "http://localhost:3000";
@@ -26,25 +25,6 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use((response) => {
     return response;
 }, (error) => {
-    let message = '';
-
-    if (error.response) {
-        console.log(error.response);
-        if (error.response.data.data && error.response.data.data.error) {
-            message = error.response.data.data.error;
-
-        } else {
-            message = error.response.data;
-        }
-        if (error.response.status !== 400) {
-            EventBus.$emit('show', message);
-        }
-    } else {
-        console.log(error);
-        message = error.message;
-        EventBus.$emit('show', message);
-    }
-
     return Promise.reject(error);
 });
 
