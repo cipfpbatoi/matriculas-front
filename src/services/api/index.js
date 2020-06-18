@@ -41,12 +41,6 @@ const status = {
 
 const users = {
     login: (credentials) => axios.post(`${baseURL}/login`, credentials),
-    getProfile: () => axios.get(`${baseURL}/users/profile`),
-    saveProfile: (profile) => axios.put(`${baseURL}/users`, profile),
-    savePassword: (password) => axios.put(`${baseURL}/users`, password),
-    register: (user) => axios.post(`${baseURL}/register`, user),
-    activation: (token) => axios.get(`${baseURL}/validation/${token}`),
-    rememberPassword: (email) => axios.post(`${baseURL}/rememberme`, email),
 };
 
 export default {

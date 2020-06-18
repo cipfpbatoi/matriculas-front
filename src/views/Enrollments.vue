@@ -1,4 +1,5 @@
 <template>
+  <v-container fluid class="grey lighten-5">
   <v-card>
     <v-row justify="center" v-for="(error, i) in errors" :key="i">
       <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
@@ -127,6 +128,7 @@
       </template>
     </v-data-table>
 
+ </v-card>
     <v-dialog v-model="dialog.showed" persistent max-width="400px">
       <v-card>
         <v-card-title class="primary--text">
@@ -155,7 +157,8 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-card>
+ 
+  </v-container>
 </template>
 
 
@@ -378,7 +381,7 @@ export default {
 </script> 
 
 <style scoped>
-tbody tr:nth-of-type(4n + 3) {
+tbody tr:nth-of-type(1) {
   background-color: rgba(0, 0, 0, 0.05);
 }
 </style>

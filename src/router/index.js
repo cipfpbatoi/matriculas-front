@@ -1,16 +1,30 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Enrollments from '../views/Enrollments.vue'
+import Login from '@/views/Login'
 
 Vue.use(VueRouter)
+
+const ifAuthenticated = ((to, from, next) => {
+    if (localStorage.token) {
+      next();
+    } else {
+      next({ name: 'login', params: { redirectTo: to.path } });
+    }
+});
 
 const routes = [
   {
     path: '/',
     name: 'enrollments',
-    component: Enrollments
+    component: Enrollments,
+    beforeEnter: ifAuthenticated,
   },
-
+  {
+    path: '/login',
+    name: 'login',
+    component: Login
+  },
   {
     path: '/about',
     name: 'About',
