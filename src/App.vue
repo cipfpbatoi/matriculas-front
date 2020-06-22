@@ -10,7 +10,7 @@
           transition="scale-transition"
           width="70"
         />
-        <h1>CIP FP Batoi - Matrículacions 2020-21</h1>
+        <h1>CIP FP Batoi - Automatrícula 2020-21</h1>
       </div>
 
       <v-spacer></v-spacer>

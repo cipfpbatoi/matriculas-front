@@ -7,8 +7,8 @@ export default {
           resolve();
           return;
       }
-      API.status.getAll()
-          .then((resp) => {
+      API.data.getStatus()
+      .then((resp) => {
               context.commit('setStatus', resp.data.data);
               context.commit('setLoaded', true);
               resolve(resp.data.data);
@@ -17,6 +17,7 @@ export default {
               context.commit('setLoaded', false);
               reject(err);
           });
+    // Se repite lo mismo para Courses, Processes, Schoole_years. Cambiar a Promises.all
     })
   },
   login (context, credentials) {

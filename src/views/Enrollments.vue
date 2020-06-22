@@ -4,57 +4,64 @@
     <v-row justify="center" v-for="(error, i) in errors" :key="i">
       <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
     </v-row>
-    <v-card-title>
-      <span>Matrícules</span>
+    <v-card-title justify="center">
+      <h2>{{ tableTitle }}</h2>
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="search.general"
+        append-icon="mdi-magnify"
+        label="Cerca"
+        single-line
+        hide-details
+      ></v-text-field>
     </v-card-title>
+    <v-card-text>
+      <v-row  class="filters" align="center">
+        <span>Filtrar per: </span>
+      <v-spacer></v-spacer>
+          <v-select
+              v-model="search.process"
+            :items="processes"
+              item-text="name"
+              item-value="id"
+            label="Convocatòria">
+          </v-select>
+      <v-spacer></v-spacer>
+          <v-select
+              v-model="search.status"
+            :items="status"
+              item-text="name"
+              item-value="id"
+            label="Estat">
+          </v-select>
+      <v-spacer></v-spacer>
+          <v-select
+              v-model="search.course"
+              :items="courses"
+              item-text="name"
+              item-value="id"
+            label="Cicle">
+          </v-select>
+      <v-spacer></v-spacer>
+          <v-select
+              v-model="search.schoolYear"
+              :items="schoolYears"
+            label="Curs">
+          </v-select>
+      </v-row>
+    </v-card-text>
     <v-data-table
       v-model="selected"
       show-select
       item-key="id"
       :headers="headers"
       :items="items"
-      :search="search"
-      :custom-filter="filterData"
+      :search="search.general"
       :loading="loading"
       loading-text="Carregant dades... Espere per favor"
       show-expand
+      single-expand
     >
-      <template v-slot:body.prepend>
-        <tr>
-          <td>Filtrar:</td>
-          <td colspan="4">
-            <v-text-field
-              size="5"
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Cerca"
-              single-line
-              hide-details
-            ></v-text-field>
-          </td>
-          <td>
-            <v-text-field
-              v-model="searchStatus"
-              type="number"
-              size="5"
-              :label="stateName(searchStatus)"
-            ></v-text-field>
-          </td>
-          <td></td>
-          <td>
-            <v-text-field v-model="searchConvocatoria" type="text" size="3" label="Convocatòria"></v-text-field>
-          </td>
-          <td>
-            <v-text-field v-model="searchCicle" type="text" size="5" label="Cicle"></v-text-field>
-          </td>
-          <td>
-            <v-text-field v-model="searchCourse" type="text" size="3" label="Curs"></v-text-field>
-          </td>
-          <td colspan="3">
-            <v-btn color="primary" @click="filtersOff">Llevar filtres</v-btn>
-          </td>
-        </tr>
-      </template>
 
       <template v-slot:item.presented_on="{ item }">
         <span>{{ showDate(item.presented_on) }}</span>
@@ -91,29 +98,32 @@
               {{ showDate(item.birthday) }}
               <br />
               <strong class="primary--text">Promociona:</strong>
-              {{ item.promote }}
+            <v-icon small 
+              :class="(item.promote?'sucess':'error')+'--text'"
+            >{{ item.promote?'mdi-check':'mdi-window-close' }}
+            </v-icon>
               <br />
-              <strong class="primary--text">Accepta assistència:</strong>
-              {{ item.assistance_condition_accept }}
-              <br />
-              <strong class="primary--text">Accepta drets d'imatge:</strong>
-              {{ item.image_right_accept }}
-            </v-col>
-            <v-col cols="12" sm="6">
               <strong class="primary--text">Vegades presentat:</strong>
               {{ item.presented_times }}
+            </v-col>
+            <v-col cols="12" sm="6">
+              <strong class="primary--text">Accepta assistència:</strong>
+            <v-icon small 
+              :class="(item.assistance_condition_accept?'sucess':'error')+'--text'"
+            >{{ item.assistance_condition_accept?'mdi-check':'mdi-window-close' }}
+            </v-icon>
+              <br />
+              <strong class="primary--text">Accepta drets d'imatge:</strong>
+            <v-icon small 
+              :class="(item.image_right_accept?'sucess':'error')+'--text'"
+            >{{ item.image_right_accept?'mdi-check':'mdi-window-close' }}
+            </v-icon>
               <br />
               <strong class="primary--text">Data de creació:</strong>
               {{ showDateTime(item.created_on) }}
               <br />
               <strong class="primary--text">Tipus matrícula:</strong>
               {{ item.process.name }}
-              <br />
-              <strong class="primary--text">Data inici:</strong>
-              {{ showDateTime(item.process.start_date) }}
-              <br />
-              <strong class="primary--text">Data fi:</strong>
-              {{ showDateTime(item.process.end_date) }}
             </v-col>
           </v-row>
         </td>
@@ -142,7 +152,7 @@
             </p>
             <v-select
               v-model="dialog.item.status"
-              :items="status"
+              :items="statusForChange"
               item-text="name"
               item-value="id"
               label="Nou estat"
@@ -164,111 +174,25 @@
 
 <script>
 import API from "@/services/api";
+import headers from '@/lib/headers'
+
+const ID_INICIADO = 1     // Para filtrar los estados como este o inferiores
+
 export default {
   data() {
     return {
-      searchCourse: "",
-      searchCicle: "",
-      searchStatus: "",
-      searchConvocatoria: "",
-      search: "",
+      search: {
+        course: '',
+        schoolYear: '',
+        status: '',
+        process: '',
+        general: ''
+      },
       items: [],
       selected: [],
       loading: true,
       expanded: [],
-      headers: [
-        {
-          text: "Cognoms",
-          align: "start",
-          sortable: true,
-          value: "student.surname",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Nom",
-          align: "start",
-          sortable: false,
-          value: "student.name",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Data pres.",
-          align: "start",
-          sortable: true,
-          value: "presented_on",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Estat",
-          align: "start",
-          sortable: true,
-          value: "status",
-          class: "primary--text  text-subtitle-2",
-          filter: value => {
-            if (!this.searchStatus) return true;
-            return value == parseInt(this.searchStatus);
-          }
-        },
-        {
-          text: "NIA",
-          align: "end",
-          sortable: false,
-          value: "student.nia",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Matr.",
-          sortable: true,
-          value: "process.id",
-          class: "primary--text text-subtitle-2",
-          filter: value => {
-            if (!this.searchConvocatoria) return true;
-            return value == parseInt(this.searchConvocatoria);
-          }
-        },
-        {
-          text: "Cicle",
-          align: "start",
-          sortable: true,
-          value: "course.name",
-          class: "primary--text text-subtitle-2",
-          filter: value => {
-            if (!this.searchCicle) return true;
-            return value.indexOf(this.searchCicle.toLocaleUpperCase()) !== -1;
-          }
-        },
-        {
-          text: "Curs",
-          align: "start",
-          sortable: true,
-          value: "school_year",
-          class: "primary--text  text-subtitle-2",
-          filter: value => {
-            if (!this.searchCourse) return true;
-            return value == parseInt(this.searchCourse);
-          }
-        },
-        {
-          text: "Tases",
-          align: "start",
-          sortable: true,
-          value: "fee_receipt_filename",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Segur",
-          align: "start",
-          sortable: true,
-          value: "insurance_receipt_filename",
-          class: "primary--text  text-subtitle-2"
-        },
-        {
-          text: "Canviar estat",
-          value: "actions",
-          sortable: false,
-          class: "primary--text  text-subtitle-2"
-        }
-      ],
+      headers: headers.enrollments,
       errors: [],
       dialog: {
         showed: false,
@@ -276,16 +200,42 @@ export default {
       }
     };
   },
+  watch: {
+    search: {
+      handler(val) {
+        this.getEnrollments();
+      },
+      deep: true
+    }
+  },
   mounted() {
     this.getData();
+    this.getEnrollments();
   },
   computed: {
+    tableTitle() {
+      return this.searchProcess
+        ? this.processes.find(item => item.id == this.searchProcess).name
+        : 'Totes les convocatòries'
+    },
+    statusForChange() {
+      return this.status.filter(item => item.id > ID_INICIADO)
+    },
     status() {
-      return this.$store.getters.getStatus;
+      return [{id: '', name: '---'}].concat(this.$store.getters.getStatus);
     },
     statusNames() {
       return this.status.map(item => item.name);
-    }
+    },
+    courses() {
+      return [{id: '', name: '---'}].concat(this.$store.getters.getCourses);
+    },
+    schoolYears() {
+      return ['---'].concat(this.$store.getters.getSchoolYears);
+    },
+    processes() {
+      return [{id: '', name: '---'}].concat(this.$store.getters.getProcesses);
+    },
   },
   methods: {
     getData() {
@@ -300,9 +250,17 @@ export default {
             show: true
           })
         );
+    },
+    getEnrollments() {
       // and load de enrollments
+      let filters = [];
+      if (this.search.process) filters.push('process='+this.search.process);
+      if (this.search.status) filters.push('status='+this.search.status);
+      if (this.search.course) filters.push('course='+this.search.course);
+      if (this.search.schoolYear && this.search.schoolYear!=='---') filters.push('school_year='+this.search.schoolYear);
+      if (this.search.general) filters.push('search='+this.search.general);
       API.enrollments
-        .getAll()
+        .getAll(filters.join('&'))
         .then(response => {
           this.loading = false;
           this.items = response.data.data;
@@ -315,20 +273,6 @@ export default {
             show: true
           });
         });
-    },
-    filterData(value, search) {
-      return (
-        value != null &&
-        search != null &&
-        typeof value === "string" &&
-        value
-          .toString()
-          .toLocaleUpperCase()
-          .indexOf(search.toLocaleUpperCase()) !== -1
-      );
-    },
-    filtersOff() {
-      this.search = this.searchStatus = this.searchConvocatoria = this.searchCicle = this.searchCourse = '';
     },
     stateName(state) {
       let stateObject = this.status.find(item => item.id == state);
@@ -359,8 +303,8 @@ export default {
         });
         return;
       }
-      API.status
-        .modify(this.dialog.item.id, this.dialog.item.status)
+      API.enrollments
+        .modifyStatus(this.dialog.item.id, this.dialog.item.status)
         .then(response =>
           this.errors.push({
             msg: `Canviat l'estat de "${response.student.surname}, ${response.student.name}"`,
@@ -383,5 +327,9 @@ export default {
 <style scoped>
 tbody tr:nth-of-type(1) {
   background-color: rgba(0, 0, 0, 0.05);
+}
+.filters {
+  border: 1px solid black;
+  padding: 0px 10px;
 }
 </style>

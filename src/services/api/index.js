@@ -31,12 +31,15 @@ axios.interceptors.response.use((response) => {
 const enrollments = {
     getAll: (params) => axios.get(`${baseURL}/application` + (params ? `?${params}` : '')),
     getOne: (id) => axios.get(`${baseURL}/application/${id}`),
+    modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status/${state}`),
 };
 
-const status = {
+const data = {
 //    getAll: () => axios.get(`${baseURL}/application/status`),
-    getAll: () => axios.get(`${baseURL}/status`),
-    modify: (id, state) => axios.put(`${baseURL}/application/${id}/status/${state}`),
+    getStatus: () => axios.get(`${baseURL}/status`),
+    getProcesses: () => axios.get(`${baseURL}/processes`),
+    getCourses: () => axios.get(`${baseURL}/courses`),
+    getShoolYears: () => axios.get(`${baseURL}/school_years`),
 };
 
 const users = {
@@ -45,6 +48,6 @@ const users = {
 
 export default {
     enrollments,
-    status,
+    data,
     users,
 };
