@@ -168,6 +168,33 @@
       </v-card>
     </v-dialog>
  
+    <v-dialog v-model="dialogProces" persistent max-width="400px">
+      <v-card>
+        <v-card-title class="primary--text">
+          <span class="headline">Tria convocatòria</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <p>
+              Indica de quina convocatòria vols vore les matrícules
+            </p>
+            <v-select
+              v-model="search.proces"
+              :items="processes"
+              item-text="name"
+              item-value="id"
+              label="Convocatòria"
+              required
+            ></v-select>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="showData">Mostra</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -177,13 +204,14 @@ import API from "@/services/api";
 import headers from '@/lib/headers'
 
 const ID_INICIADO = 1     // Para filtrar los estados como este o inferiores
+const TOTS_CURSOS = '- Tots -'    // El valor de no filtrar por curso
 
 export default {
   data() {
     return {
       search: {
         course: '',
-        schoolYear: '',
+        schoolYear: TOTS_CURSOS,
         status: '',
         process: '',
         general: ''
@@ -197,7 +225,8 @@ export default {
       dialog: {
         showed: false,
         item: {}
-      }
+      },
+      dialogProces: true,
     };
   },
   watch: {
@@ -210,7 +239,6 @@ export default {
   },
   mounted() {
     this.getData();
-    this.getEnrollments();
   },
   computed: {
     tableTitle() {
@@ -222,19 +250,19 @@ export default {
       return this.status.filter(item => item.id > ID_INICIADO)
     },
     status() {
-      return [{id: '', name: '---'}].concat(this.$store.getters.getStatus);
+      return [{id: '', name: '- Tots -'}].concat(this.$store.getters.getStatus);
     },
     statusNames() {
       return this.status.map(item => item.name);
     },
     courses() {
-      return [{id: '', name: '---'}].concat(this.$store.getters.getCourses);
+      return [{id: '', name: '- Tots -'}].concat(this.$store.getters.getCourses);
     },
     schoolYears() {
-      return ['---'].concat(this.$store.getters.getSchoolYears);
+      return ['- Tots -'].concat(this.$store.getters.getSchoolYears);
     },
     processes() {
-      return [{id: '', name: '---'}].concat(this.$store.getters.getProcesses);
+      return [{id: '', name: '- Totes -'}].concat(this.$store.getters.getProcesses);
     },
   },
   methods: {
@@ -251,13 +279,17 @@ export default {
           })
         );
     },
+    showData() {
+      this.dialogProces = false;
+      this.getEnrollments();
+    },
     getEnrollments() {
       // and load de enrollments
       let filters = [];
       if (this.search.process) filters.push('process='+this.search.process);
       if (this.search.status) filters.push('status='+this.search.status);
       if (this.search.course) filters.push('course='+this.search.course);
-      if (this.search.schoolYear && this.search.schoolYear!=='---') filters.push('school_year='+this.search.schoolYear);
+      if (this.search.schoolYear && this.search.schoolYear !== TOTS_CURSOS) filters.push('school_year='+this.search.schoolYear);
       if (this.search.general) filters.push('search='+this.search.general);
       API.enrollments
         .getAll(filters.join('&'))
