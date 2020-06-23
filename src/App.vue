@@ -1,6 +1,29 @@
 <template>
   <v-app>
+    <v-navigation-drawer v-model="drawer" app>
+      <v-list dense nav>
+        <v-list-item
+          link
+          v-for="item in menu"
+          :key="item.name"
+          @click="go(item.path)">
+          <v-list-item-icon v-if="item.icon">
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>{{ item.name }}</v-list-item-title>
+            </v-list-item-content>
+        </v-list-item>
+      </v-list>
+      <template v-slot:append>
+        <div class="pa-2">
+          <v-btn block @click="logout">Logout</v-btn>
+        </div>
+      </template>
+    </v-navigation-drawer>
+
     <v-app-bar app color="primary" dark>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <div class="d-flex align-center">
         <v-img
           alt="CIP FP Batoi"
@@ -8,14 +31,14 @@
           contain
           src="@/assets/logoBatoi.png"
           transition="scale-transition"
-          width="70"
+          width="60"
         />
-        <h1>CIP FP Batoi - Automatrícula 2020-21</h1>
+        <h1>CIP FP Batoi - Automatrícula</h1>
       </div>
-
+<!-- 
       <v-spacer></v-spacer>
       <v-btn v-if="logged" class="primary" @click="logout">Logout</v-btn>
-      <v-btn v-else class="primary" to="/login">Login</v-btn>
+      <v-btn v-else class="primary" to="/login">Login</v-btn> -->
     </v-app-bar>
 
     <v-main>
@@ -29,17 +52,24 @@ export default {
   name: "App",
 
   data: () => ({
-    //
+    drawer: false,
   }),
   computed: {
     logged() {
       return this.$store.getters.getToken;
+    },
+    menu() {
+      return this.$store.getters.getMenu;
     }
   },
   methods: {
     logout() {
       this.$store.dispatch("logout");
       this.$router.push("/login");
+    },
+    go(path) {
+      this.$router.push(path);
+      this.drawer = false;
     }
   }
 };

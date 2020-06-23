@@ -20,14 +20,6 @@
         <span><strong>Filtrar per: </strong></span>
       <v-spacer></v-spacer>
           <v-select
-              v-model="search.process"
-            :items="processes"
-              item-text="name"
-              item-value="id"
-            label="Convocatòria">
-          </v-select>
-      <v-spacer></v-spacer>
-          <v-select
               v-model="search.status"
             :items="status"
               item-text="name"
@@ -69,8 +61,11 @@
       <template v-slot:item.status="{ item }">
         <span>{{ stateName(item.status) }}</span>
       </template>
-      <template v-slot:item.process.id="{ item }">
-        <span :title="item.process.name">{{ item.process.id }}</span>
+      <template v-slot:item.promote="{ item }">
+            <v-icon  
+              :class="(item.promote?'success':'error')+'--text'"
+            >{{ item.promote?'mdi-check':'mdi-window-close' }}
+            </v-icon>
       </template>
       <template v-slot:item.fee_receipt_filename="{ item }">
         <a v-if="item.fee_receipt_filename" :href="item.fee_receipt_filename" target="_blank">
@@ -207,6 +202,7 @@ const ID_INICIADO = 1     // Para filtrar los estados como este o inferiores
 const TOTS_CURSOS = '- Tots -'    // El valor de no filtrar por curso
 
 export default {
+  props: ['process'],
   data() {
     return {
       search: {
@@ -226,7 +222,7 @@ export default {
         showed: false,
         item: {}
       },
-      dialogProces: true,
+      dialogProces: false,
     };
   },
   watch: {
@@ -235,6 +231,9 @@ export default {
         this.getEnrollments();
       },
       deep: true
+    },
+    process() {
+      this.getEnrollments();
     }
   },
   mounted() {
@@ -242,8 +241,8 @@ export default {
   },
   computed: {
     tableTitle() {
-      return this.search.process
-        ? this.processes.find(item => item.id == this.search.process).name
+      return this.process
+        ? this.processes.find(item => item.id == this.process).name
         : 'Totes les convocatòries'
     },
     statusForChange() {
@@ -286,7 +285,7 @@ export default {
     getEnrollments() {
       // and load de enrollments
       let filters = [];
-      if (this.search.process) filters.push('process='+this.search.process);
+      if (this.process) filters.push('process='+this.process);
       if (this.search.status) filters.push('status='+this.search.status);
       if (this.search.course) filters.push('course='+this.search.course);
       if (this.search.schoolYear && this.search.schoolYear !== TOTS_CURSOS) filters.push('school_year='+this.search.schoolYear);

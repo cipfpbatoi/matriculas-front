@@ -35,9 +35,9 @@ const enrollments = [
     class: "primary--text  text-subtitle-2"
   },
   {
-    text: "Matr.",
+    text: "Promociona",
     sortable: true,
-    value: "process.id",
+    value: "promote",
     class: "primary--text text-subtitle-2",
   },
   {
