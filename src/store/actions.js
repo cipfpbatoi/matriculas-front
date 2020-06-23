@@ -18,6 +18,27 @@ export default {
               reject(err);
           });
     // Se repite lo mismo para Courses, Processes, Schoole_years. Cambiar a Promises.all
+    API.data.getProcesses()
+    .then((resp) => {
+            context.commit('setProcesses', resp.data.data);
+            context.commit('setLoaded', true);
+            resolve(resp.data.data);
+        })
+        .catch((err) => {
+            context.commit('setLoaded', false);
+            reject(err);
+        });
+        API.data.getCourses()
+        .then((resp) => {
+                context.commit('setCourses', resp.data.data);
+                context.commit('setLoaded', true);
+                resolve(resp.data.data);
+            })
+            .catch((err) => {
+                context.commit('setLoaded', false);
+                reject(err);
+            });
+  
     })
   },
   login (context, credentials) {
@@ -26,7 +47,7 @@ export default {
             .then((resp) => {
 //                let token = resp.data.data.token;
                 let token = resp.data;
-                localStorage.setItem('token', token);
+                localStorage.setItem('token', token.token);
                 context.commit('setToken', token);
                 resolve(resp);
             })

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import store from '@/store';
 
 const DEBUG = process.env.NODE_ENV === 'development';
 const baseURL = process.env.VUE_APP_RUTA_API || "http://localhost:3000";
@@ -10,9 +9,9 @@ axios.interceptors.request.use((config) => {
         console.info('✉️ ', config);
     }
 
-    const token = store.getters.token;
+    const token = localStorage.token;
     if (token) {
-            config.headers['Authorization'] = 'Bearer ' + store.getters.token;
+            config.headers['Authorization'] = 'Bearer ' + token;
     }
     return config;
 }, (error) => {
@@ -31,19 +30,19 @@ axios.interceptors.response.use((response) => {
 const enrollments = {
     getAll: (params) => axios.get(`${baseURL}/application` + (params ? `?${params}` : '')),
     getOne: (id) => axios.get(`${baseURL}/application/${id}`),
-    modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status/${state}`),
+    modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status`, `status=${state}`),
 };
 
 const data = {
 //    getAll: () => axios.get(`${baseURL}/application/status`),
-    getStatus: () => axios.get(`${baseURL}/status`),
-    getProcesses: () => axios.get(`${baseURL}/processes`),
-    getCourses: () => axios.get(`${baseURL}/courses`),
+    getStatus: () => axios.get(`${baseURL}/application/status`),
+    getProcesses: () => axios.get(`${baseURL}/process`),
+    getCourses: () => axios.get(`${baseURL}/course`),
     getShoolYears: () => axios.get(`${baseURL}/school_years`),
 };
 
 const users = {
-    login: (credentials) => axios.post(`${baseURL}/login`, credentials),
+    login: (credentials) => axios.post(`${baseURL}/login_check`, credentials),
 };
 
 export default {

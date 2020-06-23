@@ -17,7 +17,7 @@
     </v-card-title>
     <v-card-text>
       <v-row  class="filters" align="center">
-        <span>Filtrar per: </span>
+        <span><strong>Filtrar per: </strong></span>
       <v-spacer></v-spacer>
           <v-select
               v-model="search.process"
@@ -202,7 +202,7 @@ export default {
   },
   watch: {
     search: {
-      handler(val) {
+      handler() {
         this.getEnrollments();
       },
       deep: true
@@ -214,8 +214,8 @@ export default {
   },
   computed: {
     tableTitle() {
-      return this.searchProcess
-        ? this.processes.find(item => item.id == this.searchProcess).name
+      return this.search.process
+        ? this.processes.find(item => item.id == this.search.process).name
         : 'Totes les convocatòries'
     },
     statusForChange() {
@@ -263,7 +263,7 @@ export default {
         .getAll(filters.join('&'))
         .then(response => {
           this.loading = false;
-          this.items = response.data.data;
+          this.items = response.data.data.applications;
         })
         .catch(err => {
           this.loading = false;
@@ -305,13 +305,15 @@ export default {
       }
       API.enrollments
         .modifyStatus(this.dialog.item.id, this.dialog.item.status)
-        .then(response =>
+        .then(response => {
+          let oldEnrollment = this.items.findIndex(item => item.id === this.dialog.item.id);
+          this.items.splice(oldEnrollment, 1, response.data.data);
           this.errors.push({
-            msg: `Canviat l'estat de "${response.student.surname}, ${response.student.name}"`,
+            msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
             type: "success",
             show: true
           })
-        )
+        })
         .catch(err =>
           this.errors.push({
             msg: "Error setting state - " + err,

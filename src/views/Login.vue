@@ -69,7 +69,7 @@ export default {
         this.sending = true;
 
         this.$store
-          .dispatch("login", { email: this.email, password: this.password })
+          .dispatch("login", { username: this.email, password: this.password })
           .then(() => {
             this.sending = false;
             this.email = this.password = '';
