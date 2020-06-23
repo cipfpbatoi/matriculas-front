@@ -68,7 +68,8 @@ export default {
       this.$router.push("/login");
     },
     go(path) {
-      this.$router.push(path);
+      if (this.$route.path !== path)
+        this.$router.push(path);
       this.drawer = false;
     }
   }

@@ -53,6 +53,7 @@
       loading-text="Carregant dades... Espere per favor"
       show-expand
       single-expand
+      hide-default-footer
     >
 
       <template v-slot:item.presented_on="{ item }">
@@ -132,6 +133,16 @@
         >mdi-checkbox-multiple-marked</v-icon>
       </template>
     </v-data-table>
+
+    <div v-if="pagination.more" class="text-center pt-2">
+      <v-btn text :disabled="pagination.page <= 1" @click="getEnrollments(-1)">
+        <v-icon class="primary--text">mdi-chevron-left</v-icon>
+      </v-btn>
+      <span class="primary--text">Pàgina {{ pagination.page }}</span>
+      <v-btn text :disabled="!pagination.more" @click="getEnrollments(1)">
+        <v-icon class="primary--text">mdi-chevron-right</v-icon>
+      </v-btn>
+    </div>
 
  </v-card>
     <v-dialog v-model="dialog.showed" persistent max-width="400px">
@@ -223,6 +234,10 @@ export default {
         item: {}
       },
       dialogProces: false,
+      pagination: {
+        page: 1,
+        more: false,
+      }
     };
   },
   watch: {
@@ -238,6 +253,7 @@ export default {
   },
   mounted() {
     this.getData();
+    this.getEnrollments();
   },
   computed: {
     tableTitle() {
@@ -282,7 +298,7 @@ export default {
       this.dialogProces = false;
       this.getEnrollments();
     },
-    getEnrollments() {
+    getEnrollments(page) {
       // and load de enrollments
       let filters = [];
       if (this.process) filters.push('process='+this.process);
@@ -290,10 +306,14 @@ export default {
       if (this.search.course) filters.push('course='+this.search.course);
       if (this.search.schoolYear && this.search.schoolYear !== TOTS_CURSOS) filters.push('school_year='+this.search.schoolYear);
       if (this.search.general) filters.push('search='+this.search.general);
+      if (page) filters.push('page='+(this.pagination.page+page))
       API.enrollments
         .getAll(filters.join('&'))
         .then(response => {
+          console.log(response)
           this.loading = false;
+          this.pagination.page = Number(response.data.data.page);
+          this.pagination.more = response.data.data.more;
           this.items = response.data.data.applications;
         })
         .catch(err => {
