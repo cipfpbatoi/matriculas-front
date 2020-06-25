@@ -2,6 +2,9 @@ export default {
   getStatus: (state) => {
     return state.status;
   },
+  getPaymentStatus: (state) => (id) => {
+    return state.paymentStatus.find(item => item.id === id);
+  },
   getCourses: (state) => {
     return state.courses;
   },

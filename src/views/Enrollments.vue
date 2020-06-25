@@ -66,8 +66,13 @@
             :class="(item.promote?'success':'error')+'--text'"
           >{{ item.promote?'mdi-check':'mdi-window-close' }}</v-icon>
         </template>
-        <template v-slot:item.fee_receipt_filename="{ item }">
-          <a v-if="item.fee_receipt_filename" :href="item.fee_receipt_filename" target="_blank">
+        <template v-slot:item.insurance_payment_type="{ item }">
+          <v-icon 
+            v-if="isCardPayment(item.insurance_payment_type)" 
+            class="mr-2"
+            :title="item.last_payment.operation_id"
+          >mdi-credit-card</v-icon>
+          <a v-else-if="item.fee_receipt_filename" :href="item.fee_receipt_filename" target="_blank">
             <v-icon class="mr-2">mdi-file-check-outline</v-icon>
           </a>
         </template>
@@ -84,7 +89,7 @@
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
             <v-row>
-              <v-col cols="12" sm="6">
+              <v-col cols="12" sm="4">
                 <strong class="primary--text">e-mail:</strong>
                 {{ item.email }}
                 <br />
@@ -100,7 +105,7 @@
                 <strong class="primary--text">Vegades presentat:</strong>
                 {{ item.presented_times }}
               </v-col>
-              <v-col cols="12" sm="6">
+              <v-col cols="12" sm="4">
                 <strong class="primary--text">Accepta assistència:</strong>
                 <v-icon
                   small
@@ -118,6 +123,20 @@
                 <br />
                 <strong class="primary--text">Tipus matrícula:</strong>
                 {{ item.process.name }}
+              </v-col>
+              <v-col v-if="isCardPayment(item.insurance_payment_type)" cols="12" sm="4">
+                <strong class="primary--text">Codi operació:</strong>
+                {{ item.last_payment.operation_id }}
+                <br />
+                <strong class="primary--text">Import:</strong>
+                {{ item.last_payment.prize }}
+                <br />
+                <strong class="primary--text">Estat operació:</strong>
+                {{ paymentStatusName(item.last_payment.status) }}
+                <br />
+                <strong class="primary--text">Data:</strong>
+                {{ showDateTime(item.last_payment.last_modified_on) }}
+                <br />
               </v-col>
             </v-row>
           </td>
@@ -218,6 +237,8 @@ import headers from "@/lib/headers";
 const ID_INICIADO = 1; // Para filtrar los estados como este o inferiores
 const TOTS_CURSOS = "- Tots -"; // El valor de no filtrar por curso
 const DEFAULT_SIZE_PAGE = 25;
+// const INSURANZE_TRANS_PAY = 1;
+const INSURANZE_CARD_PAY = 2;
 
 export default {
   props: ["process"],
@@ -371,6 +392,12 @@ export default {
     },
     showDateTime(date) {
       return date ? new Date(date).toLocaleString() : "---";
+    },
+    isCardPayment(type) {
+      return type === INSURANZE_CARD_PAY;
+    },
+    paymentStatusName(id) {
+      return this.$store.getters.getPaymentStatus(id).name;
     },
     openDialog(item) {
       this.dialog.item = {

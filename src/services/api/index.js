@@ -36,6 +36,7 @@ const enrollments = {
 const data = {
 //    getAll: () => axios.get(`${baseURL}/application/status`),
     getStatus: () => axios.get(`${baseURL}/application/status`),
+    getPaymentStatus: () => axios.get(`${baseURL}/payment/status`),
     getProcesses: () => axios.get(`${baseURL}/process`),
     getCourses: () => axios.get(`${baseURL}/course`),
     getShoolYears: () => axios.get(`${baseURL}/school_years`),

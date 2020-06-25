@@ -2,6 +2,9 @@ export default {
   setStatus (state, data) {
     state.status = data;
   },
+  setPaymentStatus (state, data) {
+    state.paymentStatus = data;
+  },
   setCourses (state, data) {
     state.courses = data;
   },
