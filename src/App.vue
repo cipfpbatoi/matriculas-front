@@ -27,7 +27,7 @@
       <div class="d-flex align-center">
         <v-img
           alt="CIP FP Batoi"
-          class="shrink mr-2"
+          class="shrink mr-2 logo"
           contain
           src="@/assets/logoBatoi.png"
           transition="scale-transition"
