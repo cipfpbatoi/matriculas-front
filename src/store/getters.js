@@ -1,6 +1,11 @@
+const ID_STATUS_INICIADO = 1; // Para filtrar los estados como este o inferiores
+
 export default {
   getStatus: (state) => {
     return state.status;
+  },
+  getSelectableStatus: (state) => {
+    return state.status.filter(item => item.id > ID_STATUS_INICIADO);
   },
   getPaymentStatus: (state) => (id) => {
     return state.paymentStatus.find(item => item.id === id);

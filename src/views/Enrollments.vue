@@ -2,10 +2,7 @@
   <v-container fluid class="grey lighten-5">
     <v-card>
       <v-row justify="center" v-for="(error, i) in errors" :key="i">
-        <v-alert 
-          v-model="error.show" 
-          :type="error.type" 
-          dismissible>{{ error.msg }}</v-alert>
+        <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
       </v-row>
       <v-card-title justify="center">
         <h2>{{ tableTitle }}</h2>
@@ -54,6 +51,7 @@
         loading-text="Carregant dades... Espere per favor"
         show-expand
         single-expand
+        disable-pagination
         hide-default-footer
         :sort-by.sync="sortBy"
         :sort-desc.sync="sortDesc"
@@ -75,13 +73,16 @@
           </a>
         </template>
         <template v-slot:item.insurance_payment_type="{ item }">
-          <v-icon 
-            v-if="isCardPayment(item.insurance_payment_type)" 
+          <v-icon
+            v-if="isCardPayment(item.insurance_payment_type)"
             class="mr-2"
             :title="item.last_payment.operation_id"
           >mdi-credit-card</v-icon>
-          <a v-else-if="item.insurance_receipt_filename" 
-            :href="item.insurance_receipt_filename" target="_blank">
+          <a
+            v-else-if="item.insurance_receipt_filename"
+            :href="item.insurance_receipt_filename"
+            target="_blank"
+          >
             <v-icon class="mr-2">mdi-file-check-outline</v-icon>
           </a>
         </template>
@@ -173,6 +174,8 @@
         </v-col>
       </v-row>
     </v-card>
+
+    <v-btn class="primary" @click="openDialog()">Canviar estat als sel·leccionats</v-btn>
     <v-dialog v-model="dialog.showed" persistent max-width="400px">
       <v-card>
         <v-card-title class="primary--text">
@@ -183,6 +186,7 @@
             <p>
               Indica el nou estat per a l'alumne
               <strong>{{ dialog.item.name }}</strong>
+              <strong v-if="dialog.totalSelected > 1">i {{ dialog.totalSelected - 1 }} més</strong>
             </p>
             <v-select
               v-model="dialog.item.status"
@@ -201,7 +205,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </v-container>
 </template>
 
@@ -210,7 +213,6 @@
 import API from "@/services/api";
 import headers from "@/lib/headers";
 
-const ID_INICIADO = 1; // Para filtrar los estados como este o inferiores
 const TOTS_CURSOS = "- Tots -"; // El valor de no filtrar por curso
 const DEFAULT_SIZE_PAGE = 25;
 // const INSURANZE_TRANS_PAY = 1;
@@ -235,7 +237,8 @@ export default {
       errors: [],
       dialog: {
         showed: false,
-        item: {}
+        item: {},
+        totalSelected: 0,
       },
       pagination: {
         page: 1,
@@ -274,7 +277,7 @@ export default {
         : "Totes les convocatòries";
     },
     statusForChange() {
-      return this.status.filter(item => item.id > ID_INICIADO);
+      return this.$store.getters.getSelectableStatus;
     },
     status() {
       return [{ id: "", name: "- Tots -" }].concat(
@@ -350,11 +353,11 @@ export default {
             show: true
           });
           if (err.response.status === 401) {
-            let msg = '';
+            let msg = "";
             if (/expired/i.test(err.response.data.message)) {
-              msg = 'Tu token ha caducado. Debes loguearte de nuevo'
+              msg = "Tu token ha caducado. Debes loguearte de nuevo";
             } else {
-              msg = 'No estás logueado. Debes loguearte'
+              msg = "No estás logueado. Debes loguearte";
             }
             this.errors.push({
               msg,
@@ -381,44 +384,93 @@ export default {
       return this.$store.getters.getPaymentStatus(id).name;
     },
     openDialog(item) {
-      this.dialog.item = {
-        id: item.id,
-        name: `${item.student.surname}, ${item.student.name}`,
-        oldStatus: String(item.status),
-        status: String(item.status)
-      };
+      if (item) {
+        // Es canvia 1 registre
+        this.dialog.item = {
+          id: item.id,
+          name: `${item.student.surname}, ${item.student.name}`,
+          oldStatus: String(item.status),
+          status: String(item.status),
+        };
+        this.dialog.totalSelected = 1;
+      } else {
+        // Es canvien tots els seleccionats
+        if (this.selected.length) {
+          this.dialog.item = {
+            id: this.selected[0].id,
+            name: `${this.selected[0].student.surname}, ${this.selected[0].student.name}`,
+            oldStatus: '',
+            status: '',
+          }
+          this.dialog.totalSelected = this.selected.length;
+        } else {
+          this.errors.push({
+                msg: 'No hi ha cap registre sel·leccionat',
+                type: "info",
+                show: true
+          })
+          return;
+        }
+      }
       this.dialog.showed = true;
     },
     canviaEstat() {
       this.dialog.showed = false;
-      if (this.dialog.item.oldStatus === this.dialog.item.status) {
-        this.errors.push({
-          msg: `No has canviat l'estat de "${this.dialog.item.name}"`,
-          type: "info",
-          show: true
-        });
-        return;
-      }
-      API.enrollments
-        .modifyStatus(this.dialog.item.id, this.dialog.item.status)
-        .then(response => {
-          let oldEnrollment = this.items.findIndex(
-            item => item.id === this.dialog.item.id
-          );
-          this.items.splice(oldEnrollment, 1, response.data.data);
+      if (this.dialog.totalSelected === 1) {
+        if (this.dialog.item.oldStatus === this.dialog.item.status) {
           this.errors.push({
-            msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
-            type: "success",
+            msg: `No has canviat l'estat de "${this.dialog.item.name}"`,
+            type: "info",
             show: true
           });
-        })
-        .catch(err =>
+        } else {
+          API.enrollments.modifyStatus(this.dialog.item.id, this.dialog.item.status)
+          .then(response => {
+            let oldEnrollment = this.items.findIndex(
+              item => item.id === this.dialog.item.id
+            );
+            this.items.splice(oldEnrollment, 1, response.data.data);
+            this.errors.push({
+              msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
+              type: "success",
+              show: true
+            });
+          })
+          .catch(err => this.errors.push({
+              msg: "Error setting state - " + err,
+              type: "error",
+              show: true
+            })
+          )
+        }
+      } else {
+        // se cambian varios estados
+        let stateChangePromises = [];
+        this.selected.forEach(item => stateChangePromises
+          .push(API.enrollments.modifyStatus(item.id, this.dialog.item.status)));
+        if (stateChangePromises.length) {
+          Promise.all(stateChangePromises)
+            .then(values => {
+              let firstAlumn = values[0].data.data.student.surname + ', ' + values[0].data.data.student.name;
+              this.errors.push({
+                msg: `Canviat l'estat de "${firstAlumn}" i de altres ${values.length - 1}"`,
+                type: "success",
+                show: true
+              })
+            })
+            .catch(err => this.errors.push({
+              msg: "Error setting state - " + err,
+              type: "error",
+              show: true
+            }))
+        } else {
           this.errors.push({
-            msg: "Error setting state - " + err,
-            type: "error",
+            msg: "No has seleccionado ningún alumno",
+            type: "info",
             show: true
           })
-        );
+        }
+      }
     }
   }
 };
