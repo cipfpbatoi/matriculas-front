@@ -58,14 +58,14 @@ const enrollments = [
     text: "Tases",
     align: "start",
     sortable: true,
-    value: "insurance_payment_type",
+    value: "fee_receipt_filename",
     class: "primary--text  text-subtitle-2"
   },
   {
     text: "Segur",
     align: "start",
     sortable: true,
-    value: "insurance_receipt_filename",
+    value: "insurance_payment_type",
     class: "primary--text  text-subtitle-2"
   },
   {

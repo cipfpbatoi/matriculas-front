@@ -35,10 +35,8 @@
         />
         <h1>CIP FP Batoi - Automatrícula</h1>
       </div>
-<!-- 
       <v-spacer></v-spacer>
-      <v-btn v-if="logged" class="primary" @click="logout">Logout</v-btn>
-      <v-btn v-else class="primary" to="/login">Login</v-btn> -->
+      <h3 v-if="logged" class="primary">Hola {{ user }}</h3>
     </v-app-bar>
 
     <v-main>
@@ -57,6 +55,9 @@ export default {
   computed: {
     logged() {
       return this.$store.getters.getToken;
+    },
+    user() {
+      return this.$store.getters.getUser;
     },
     menu() {
       return this.$store.getters.getMenu;

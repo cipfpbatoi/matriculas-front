@@ -14,7 +14,7 @@ export default {
   setLoaded (state, value) {
       state.loaded = value;
   },
-  setToken (state, token) {
-      state.token = token;
+  setUser (state, user) {
+      state.user = user;
   },
 }

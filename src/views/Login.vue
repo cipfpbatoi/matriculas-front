@@ -63,31 +63,42 @@ export default {
   },
 
   methods: {
-    validateForm() {
+    async validateForm() {
       this.$refs.form.validate();
       if (this.valid) {
         this.sending = true;
 
-        this.$store
-          .dispatch("login", { username: this.email, password: this.password })
-          .then(() => {
-            this.sending = false;
-            this.email = this.password = '';
+        try {
+          const resp = await this.$store.dispatch("login", {
+            username: this.email,
+            password: this.password
+          });
+          this.sending = false;
+          this.email = this.password = "";
+          console.log(resp);
 
-            if (this.redirectTo) {
-              this.$router.push(this.redirectTo);
-            } else {
-              this.$router.push("/");
-            }
-          })
-          .catch(err => {
-            this.sending = false;
+          if (this.redirectTo) {
+            this.$router.push(this.redirectTo);
+          } else {
+            this.$router.push("/");
+          }
+        } catch (err) {
+          this.sending = false;
+          console.log(err)
+          if (err.response.status === 401) {
             this.errors.push({
-              msg: "Server error - " + err,
+              msg: "Usuari o contrasenya no vàlids",
               type: "error",
               show: true
             });
-          });
+          } else {
+            this.errors.push({
+              msg: "Server error - " + err + '(' + err.response.data.message + ')',
+              type: "error",
+              show: true
+            });
+          }
+        }
       }
     },
     resetForm() {

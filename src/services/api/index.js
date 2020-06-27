@@ -44,6 +44,7 @@ const data = {
 
 const users = {
     login: (credentials) => axios.post(`${baseURL}/login_check`, credentials),
+    profile: () => axios.get(`${baseURL}/user/profile`),
 };
 
 export default {

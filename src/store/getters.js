@@ -15,10 +15,15 @@ export default {
     return state.schoolYears;
   },
   getToken: (state) => {
-    return state.token;
+    return state.user.token;
+  },
+  getUser: (state) => {
+    return state.user.name 
+      ? state.user.name + ' ' + state.user.surname
+      : '';
   },
   getMenu: (state) => {
-    if (state.token) {
+    if (state.user.token) {
       let menu = [];
       state.processes.forEach(item => menu.push({
         name: item.name,

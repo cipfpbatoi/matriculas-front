@@ -2,7 +2,10 @@
   <v-container fluid class="grey lighten-5">
     <v-card>
       <v-row justify="center" v-for="(error, i) in errors" :key="i">
-        <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
+        <v-alert 
+          v-model="error.show" 
+          :type="error.type" 
+          dismissible>{{ error.msg }}</v-alert>
       </v-row>
       <v-card-title justify="center">
         <h2>{{ tableTitle }}</h2>
@@ -66,22 +69,19 @@
             :class="(item.promote?'success':'error')+'--text'"
           >{{ item.promote?'mdi-check':'mdi-window-close' }}</v-icon>
         </template>
+        <template v-slot:item.fee_receipt_filename="{ item }">
+          <a v-if="item.fee_receipt_filename" :href="item.fee_receipt_filename" target="_blank">
+            <v-icon class="mr-2">mdi-file-check-outline</v-icon>
+          </a>
+        </template>
         <template v-slot:item.insurance_payment_type="{ item }">
           <v-icon 
             v-if="isCardPayment(item.insurance_payment_type)" 
             class="mr-2"
             :title="item.last_payment.operation_id"
           >mdi-credit-card</v-icon>
-          <a v-else-if="item.fee_receipt_filename" :href="item.fee_receipt_filename" target="_blank">
-            <v-icon class="mr-2">mdi-file-check-outline</v-icon>
-          </a>
-        </template>
-        <template v-slot:item.insurance_receipt_filename="{ item }">
-          <a
-            v-if="item.insurance_receipt_filename"
-            :href="item.insurance_receipt_filename"
-            target="_blank"
-          >
+          <a v-else-if="item.insurance_receipt_filename" 
+            :href="item.insurance_receipt_filename" target="_blank">
             <v-icon class="mr-2">mdi-file-check-outline</v-icon>
           </a>
         </template>
@@ -202,30 +202,6 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="dialogProces" persistent max-width="400px">
-      <v-card>
-        <v-card-title class="primary--text">
-          <span class="headline">Tria convocatòria</span>
-        </v-card-title>
-        <v-card-text>
-          <v-container>
-            <p>Indica de quina convocatòria vols vore les matrícules</p>
-            <v-select
-              v-model="search.proces"
-              :items="processes"
-              item-text="name"
-              item-value="id"
-              label="Convocatòria"
-              required
-            ></v-select>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="showData">Mostra</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -261,7 +237,6 @@ export default {
         showed: false,
         item: {}
       },
-      dialogProces: false,
       pagination: {
         page: 1,
         more: false,
@@ -375,8 +350,14 @@ export default {
             show: true
           });
           if (err.response.status === 401) {
+            let msg = '';
+            if (/expired/i.test(err.response.data.message)) {
+              msg = 'Tu token ha caducado. Debes loguearte de nuevo'
+            } else {
+              msg = 'No estás logueado. Debes loguearte'
+            }
             this.errors.push({
-              msg: "Debes loguearte de nuevo",
+              msg,
               type: "error",
               show: true
             });

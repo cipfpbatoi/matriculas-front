@@ -51,22 +51,36 @@ export default {
 
         })
     },
-    login(context, credentials) {
-        return new Promise((resolve, reject) => {
-            API.users.login(credentials)
-                .then((resp) => {
-                    //                let token = resp.data.data.token;
-                    let token = resp.data;
-                    localStorage.setItem('token', token.token);
-                    context.commit('setToken', token);
-                    resolve(resp);
-                })
-                .catch((err) => {
-                    localStorage.removeItem('token');
-                    reject(err);
-                });
-        });
+    async login(context, credentials) {
+        try {
+            const respLogin = await API.users.login(credentials);
+            localStorage.setItem('token', respLogin.data.token);
+            // Demanem el perfil
+            const respProfile = await API.users.profile();
+            respProfile.data.data.token = respLogin.data.token;
+            context.commit('setUser', respProfile.data.data);
+            return respProfile.data;
+        } catch(err) {
+            localStorage.removeItem('token');
+            throw err;
+        }
     },
+    // login(context, credentials) {
+    //     return new Promise((resolve, reject) => {
+    //         API.users.login(credentials)
+    //             .then((resp) => {
+    //                 //                let token = resp.data.data.token;
+    //                 let token = resp.data;
+    //                 localStorage.setItem('token', token.token);
+    //                 context.commit('setToken', token);
+    //                 resolve(resp);
+    //             })
+    //             .catch((err) => {
+    //                 localStorage.removeItem('token');
+    //                 reject(err);
+    //             });
+    //     });
+    // },
     logout({ commit }) {
         localStorage.removeItem('token');
         commit('setToken', '');
