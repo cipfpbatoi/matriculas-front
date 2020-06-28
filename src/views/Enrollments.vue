@@ -14,6 +14,7 @@
           single-line
           hide-details
         ></v-text-field>
+    <v-btn align="rigth" @click="getEnrollments()">Recarregar les dades</v-btn>
       </v-card-title>
       <v-card-text>
         <v-row class="filters" align="center">
@@ -23,10 +24,11 @@
           <v-spacer></v-spacer>
           <v-select
             v-model="search.status"
-            :items="status"
+            :items="statusAll"
             item-text="name"
             item-value="id"
             label="Estat"
+            clearable
           ></v-select>
           <v-spacer></v-spacer>
           <v-select
@@ -35,9 +37,15 @@
             item-text="name"
             item-value="id"
             label="Cicle"
+            clearable
           ></v-select>
           <v-spacer></v-spacer>
-          <v-select v-model="search.schoolYear" :items="schoolYears" label="Curs"></v-select>
+          <v-select 
+            v-model="search.schoolYear" 
+            :items="schoolYears" 
+            label="Curs"
+            clearable
+          ></v-select>
         </v-row>
       </v-card-text>
       <v-data-table
@@ -152,7 +160,7 @@
         </template>
       </v-data-table>
 
-      <v-row v-if="pagination.more" class="text-center pt-2">
+      <v-row class="text-center pt-2">
         <v-col cols="10">
           <v-btn text :disabled="pagination.page <= 1" @click="getEnrollments(-1)">
             <v-icon class="primary--text">mdi-chevron-left</v-icon>
@@ -176,6 +184,7 @@
     </v-card>
 
     <v-btn class="primary" @click="openDialog()">Canviar estat als sel·leccionats</v-btn>
+
     <v-dialog v-model="dialog.showed" persistent max-width="400px">
       <v-card>
         <v-card-title class="primary--text">
@@ -213,18 +222,17 @@
 import API from "@/services/api";
 import headers from "@/lib/headers";
 
-const TOTS_CURSOS = "- Tots -"; // El valor de no filtrar por curso
 const DEFAULT_SIZE_PAGE = 25;
 // const INSURANZE_TRANS_PAY = 1;
 const INSURANZE_CARD_PAY = 2;
 
 export default {
-  props: ["process"],
+  props: ["process", "status"],
   data() {
     return {
       search: {
         course: "",
-        schoolYear: TOTS_CURSOS,
+        schoolYear: "",
         status: "",
         process: "",
         general: ""
@@ -250,6 +258,14 @@ export default {
     };
   },
   watch: {
+    $route(to,from) {
+      if (to === from) return;
+      if (this.status) {
+        this.search.status = Number(this.status);
+      }
+      this.getData();
+      this.getEnrollments();
+    },
     search: {
       handler() {
         this.getEnrollments();
@@ -267,6 +283,9 @@ export default {
     }
   },
   mounted() {
+    if (this.status) {
+      this.search.status = Number(this.status);
+    }
     this.getData();
     this.getEnrollments();
   },
@@ -279,26 +298,17 @@ export default {
     statusForChange() {
       return this.$store.getters.getSelectableStatus;
     },
-    status() {
-      return [{ id: "", name: "- Tots -" }].concat(
-        this.$store.getters.getStatus
-      );
-    },
-    statusNames() {
-      return this.status.map(item => item.name);
+    statusAll() {
+      return this.$store.getters.getStatus;
     },
     courses() {
-      return [{ id: "", name: "- Tots -" }].concat(
-        this.$store.getters.getCourses
-      );
+      return this.$store.getters.getCourses;
     },
     schoolYears() {
-      return ["- Tots -"].concat(this.$store.getters.getSchoolYears);
+      return this.$store.getters.getSchoolYears;
     },
     processes() {
-      return [{ id: "", name: "- Totes -" }].concat(
-        this.$store.getters.getProcesses
-      );
+      return this.$store.getters.getProcesses;
     }
   },
   methods: {
@@ -326,12 +336,12 @@ export default {
       if (this.process) filters.push("process=" + this.process);
       if (this.search.status) filters.push("status=" + this.search.status);
       if (this.search.course) filters.push("course=" + this.search.course);
-      if (this.search.schoolYear && this.search.schoolYear !== TOTS_CURSOS)
+      if (this.search.schoolYear)
         filters.push("school_year=" + this.search.schoolYear);
       if (this.search.general) filters.push("search=" + this.search.general);
       if (this.pagination.more) {
         filters.push("page=" + (this.pagination.page + page));
-        filters.push("pageSize=" + this.pagination.pageSize);
+        filters.push("sizePage=" + this.pagination.pageSize);
         if (this.sortBy) filters.push(["orderBy=" + this.sortBy]);
         if (this.sortDesc) filters.push("order=DES");
       }
@@ -342,7 +352,7 @@ export default {
           this.loading = false;
           this.pagination.page = Number(response.data.data.page);
           this.pagination.more = response.data.data.more;
-          this.pagination.pageSize = Number(response.data.data.pageSize);
+          this.pagination.pageSize = Number(response.data.data.sizePage);
           this.items = response.data.data.applications;
         })
         .catch(err => {
@@ -364,11 +374,12 @@ export default {
               type: "error",
               show: true
             });
+            this.$router.push({name: 'login', params: { msg }})
           }
         });
     },
     stateName(state) {
-      let stateObject = this.status.find(item => item.id == state);
+      let stateObject = this.statusAll.find(item => item.id === state);
       return stateObject ? stateObject.name : "";
     },
     showDate(date) {

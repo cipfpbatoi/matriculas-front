@@ -35,11 +35,6 @@ export default {
         path: '/process/' + item.id,
         icon: 'mdi-folder'
       }))
-      menu.push({
-          name: 'Totes',
-          path: '/',
-          icon: 'mdi-folder-multiple'
-      });
       return menu;
     }
     return [

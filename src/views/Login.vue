@@ -60,6 +60,13 @@ export default {
       alert("Ja estas loguejat");
       this.$router.push("/");
     }
+    if (this.$route.params.msg) {
+      this.errors.push({
+        msg: this.$route.params.msg,
+        type: "info",
+        show: true
+      });
+    }
   },
 
   methods: {
@@ -84,7 +91,7 @@ export default {
           }
         } catch (err) {
           this.sending = false;
-          console.log(err)
+          console.log(err);
           if (err.response.status === 401) {
             this.errors.push({
               msg: "Usuari o contrasenya no vàlids",
@@ -93,7 +100,8 @@ export default {
             });
           } else {
             this.errors.push({
-              msg: "Server error - " + err + '(' + err.response.data.message + ')',
+              msg:
+                "Server error - " + err + "(" + err.response.data.message + ")",
               type: "error",
               show: true
             });

@@ -28,6 +28,20 @@ const routes = [
     beforeEnter: ifAuthenticated,
   },
   {
+    path: '/process/:process/status/:status',
+    name: 'enrollmentsperprocessstatus',
+    component: Enrollments,
+    props: true,
+    beforeEnter: ifAuthenticated,
+  },
+  {
+    path: '/status/:status',
+    name: 'enrollmentsperstatus',
+    component: Enrollments,
+    props: true,
+    beforeEnter: ifAuthenticated,
+  },
+  {
     path: '/login',
     name: 'login',
     component: Login
