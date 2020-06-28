@@ -358,13 +358,13 @@ export default {
         .catch(err => {
           this.loading = false;
           this.errors.push({
-            msg: "Error loading enrollments - " + err,
+            msg: "Error loading enrollments - " + err.response.data.error,
             type: "error",
             show: true
           });
           if (err.response.status === 401) {
             let msg = "";
-            if (/expired/i.test(err.response.data.message)) {
+            if (/expired/i.test(err.response.data.error)) {
               msg = "Tu token ha caducado. Debes loguearte de nuevo";
             } else {
               msg = "No estás logueado. Debes loguearte";
@@ -448,7 +448,7 @@ export default {
             });
           })
           .catch(err => this.errors.push({
-              msg: "Error setting state - " + err,
+              msg: "Error setting state - " + err.response.data.error,
               type: "error",
               show: true
             })
@@ -470,7 +470,7 @@ export default {
               })
             })
             .catch(err => this.errors.push({
-              msg: "Error setting state - " + err,
+              msg: "Error setting state - " + err.response.data.error,
               type: "error",
               show: true
             }))
