@@ -162,6 +162,9 @@
 
       <v-row class="text-center pt-2">
         <v-col cols="10">
+          Mostrando de
+          <strong>{{ pagination.pageSize * (pagination.page -1)}} </strong> hasta
+          <strong>{{ pagination.pageSize * (pagination.page -1) + items.length }} </strong>
           <v-btn text :disabled="pagination.page <= 1" @click="getEnrollments(-1)">
             <v-icon class="primary--text">mdi-chevron-left</v-icon>
           </v-btn>
