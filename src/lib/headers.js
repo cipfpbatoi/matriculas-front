@@ -49,9 +49,14 @@ const enrollments = [
   },
   {
     text: "Curs",
-    align: "start",
     sortable: true,
     value: "school_year",
+    class: "primary--text  text-subtitle-2",
+  },
+  {
+    text: "Ant.",
+    sortable: true,
+    value: "from_school_year",
     class: "primary--text  text-subtitle-2",
   },
   {

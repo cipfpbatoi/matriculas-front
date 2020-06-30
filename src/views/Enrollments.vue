@@ -100,7 +100,7 @@
             <v-row>
               <v-col cols="12" sm="4">
                 <strong class="primary--text">e-mail:</strong>
-                {{ item.email }}
+                {{ item.student.email }}
                 <br />
                 <strong class="primary--text">Data de naixement:</strong>
                 {{ showDate(item.birthday) }}
@@ -279,6 +279,7 @@ export default {
       this.getEnrollments();
     },
     sortBy() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
       this.getEnrollments();
     },
     sortDesc() {
@@ -345,8 +346,8 @@ export default {
       if (this.pagination.more) {
         filters.push("page=" + (this.pagination.page + page));
         filters.push("sizePage=" + this.pagination.pageSize);
-        if (this.sortBy) filters.push(["orderBy=" + this.sortBy]);
-        if (this.sortDesc) filters.push("order=DES");
+        if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
+        if (this.sortDesc) filters.push("order=DESC");
       }
       API.enrollments
         .getAll(filters.join("&"))
@@ -384,6 +385,16 @@ export default {
     stateName(state) {
       let stateObject = this.statusAll.find(item => item.id === state);
       return stateObject ? stateObject.name : "";
+    },
+    apiName(field) {
+      switch (field) {
+        case 'student.surname':
+          return 'student';
+        case 'course.name':
+          return 'course';
+        default:
+          return field;
+      }
     },
     showDate(date) {
       return date ? new Date(date).toLocaleDateString() : "---";
