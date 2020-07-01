@@ -336,6 +336,7 @@ export default {
     getEnrollments(page = 0) {
       // load de enrollments
       this.loading = true;
+      this.items = [];
       let filters = [];
       if (this.process) filters.push("process=" + this.process);
       if (this.search.status) filters.push("status=" + this.search.status);
@@ -343,7 +344,7 @@ export default {
       if (this.search.schoolYear)
         filters.push("school_year=" + this.search.schoolYear);
       if (this.search.general) filters.push("search=" + this.search.general);
-      if (this.pagination.more) {
+      if (this.pagination.more || this.pagination.page > 1) {
         filters.push("page=" + (this.pagination.page + page));
         filters.push("sizePage=" + this.pagination.pageSize);
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
