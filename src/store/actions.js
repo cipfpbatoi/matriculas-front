@@ -76,7 +76,6 @@ export default {
     },
     refreshToken(context) {
         alert('refresca');
-        return;
         let user = context.state.user;
         API.users.refresh(user.refreshToken)
         .then(respLogin => {
@@ -88,9 +87,9 @@ export default {
             user.roles = tokenDecoded.roles;
             context.commit('setUser', user);
         })
-        .catch(err) {
+        .catch((err) => {
             localStorage.removeItem('token');
             throw err;
-        }
+        })
     }
 }

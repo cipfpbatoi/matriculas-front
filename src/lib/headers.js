@@ -1,5 +1,12 @@
 const enrollments = [
   {
+    text: "Id",
+    align: "start",
+    sortable: true,
+    value: "id",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
     text: "Cognoms",
     align: "start",
     sortable: true,
