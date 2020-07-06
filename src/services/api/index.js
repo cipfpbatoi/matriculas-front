@@ -1,7 +1,9 @@
 import axios from 'axios';
+import StoreActions from "@/store/actions";
 
 const DEBUG = process.env.NODE_ENV === 'development';
 const baseURL = process.env.VUE_APP_RUTA_API || "http://localhost:3000";
+const TimeToRefresh = 15 * 60;  // 15 minuts
 
 axios.interceptors.request.use((config) => {
     /** In dev, intercepts request and logs it into console for dev */
@@ -11,7 +13,11 @@ axios.interceptors.request.use((config) => {
 
     const token = localStorage.token;
     if (token) {
-            config.headers['Authorization'] = 'Bearer ' + token;
+        config.headers['Authorization'] = 'Bearer ' + token;
+        // comprobamos si hemos de refrescar el token
+        if (new Date() / 1000 + TimeToRefresh > localStorage.expires) {
+            StoreActions.refreshToken();
+        }
     }
     return config;
 }, (error) => {
@@ -34,7 +40,7 @@ const enrollments = {
 };
 
 const data = {
-//    getAll: () => axios.get(`${baseURL}/application/status`),
+    //    getAll: () => axios.get(`${baseURL}/application/status`),
     getStatus: () => axios.get(`${baseURL}/application/status`),
     getPaymentStatus: () => axios.get(`${baseURL}/payment/status`),
     getProcesses: () => axios.get(`${baseURL}/process`),
@@ -44,6 +50,7 @@ const data = {
 
 const users = {
     login: (credentials) => axios.post(`${baseURL}/login_check`, credentials),
+    refresh: (refreshToken) => axios.post(`${baseURL}/token/refresh`, refreshToken),
     profile: () => axios.get(`${baseURL}/user/profile`),
 };
 

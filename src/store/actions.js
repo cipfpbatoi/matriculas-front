@@ -1,4 +1,5 @@
 import API from '@/services/api/';
+import * as jwt_decode from 'jwt-decode';
 
 export default {
     loadData(context) {
@@ -54,10 +55,14 @@ export default {
     async login(context, credentials) {
         try {
             const respLogin = await API.users.login(credentials);
+            let tokenDecoded = jwt_decode(respLogin.data.token);
             localStorage.setItem('token', respLogin.data.token);
+            localStorage.setItem('expires', tokenDecoded.exp);
             // Demanem el perfil
             const respProfile = await API.users.profile();
             respProfile.data.data.token = respLogin.data.token;
+            respProfile.data.data.refreshToken = respLogin.data.refresh_token;
+            respProfile.data.data.roles = tokenDecoded.roles;
             context.commit('setUser', respProfile.data.data);
             return respProfile.data;
         } catch(err) {
@@ -65,25 +70,27 @@ export default {
             throw err;
         }
     },
-    // login(context, credentials) {
-    //     return new Promise((resolve, reject) => {
-    //         API.users.login(credentials)
-    //             .then((resp) => {
-    //                 //                let token = resp.data.data.token;
-    //                 let token = resp.data;
-    //                 localStorage.setItem('token', token.token);
-    //                 context.commit('setToken', token);
-    //                 resolve(resp);
-    //             })
-    //             .catch((err) => {
-    //                 localStorage.removeItem('token');
-    //                 reject(err);
-    //             });
-    //     });
-    // },
     logout({ commit }) {
         localStorage.removeItem('token');
         commit('setUser', {});
+    },
+    refreshToken(context) {
+        alert('refresca');
+        return;
+        let user = context.state.user;
+        API.users.refresh(user.refreshToken)
+        .then(respLogin => {
+            let tokenDecoded = jwt_decode(respLogin.data.token);
+            localStorage.setItem('token', respLogin.data.token);
+            localStorage.setItem('expires', tokenDecoded.exp);
+            user.token = respLogin.data.token;
+            user.refreshToken = respLogin.data.refresh_token;
+            user.roles = tokenDecoded.roles;
+            context.commit('setUser', user);
+        })
+        .catch(err) {
+            localStorage.removeItem('token');
+            throw err;
+        }
     }
-
 }
