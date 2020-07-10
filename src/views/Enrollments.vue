@@ -14,7 +14,14 @@
           single-line
           hide-details
         ></v-text-field>
-    <v-btn align="rigth" @click="getEnrollments()">Recarregar les dades</v-btn>
+        <v-spacer></v-spacer>
+
+        <v-btn>
+          <v-icon title="Imprimir" @click="printData">mdi-printer</v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+
+        <v-btn align="rigth" @click="getEnrollments()">Recarregar les dades</v-btn>
       </v-card-title>
       <v-card-text>
         <v-row class="filters" align="center">
@@ -40,12 +47,7 @@
             clearable
           ></v-select>
           <v-spacer></v-spacer>
-          <v-select 
-            v-model="search.schoolYear" 
-            :items="schoolYears" 
-            label="Curs"
-            clearable
-          ></v-select>
+          <v-select v-model="search.schoolYear" :items="schoolYears" label="Curs" clearable></v-select>
         </v-row>
       </v-card-text>
       <v-data-table
@@ -163,8 +165,8 @@
       <v-row class="text-center pt-2">
         <v-col cols="10">
           Mostrando de
-          <strong>{{ (pagination.pageSize * (pagination.page -1) + 1 )}} </strong> hasta
-          <strong>{{ pagination.pageSize * (pagination.page -1) + items.length }} </strong>
+          <strong>{{ (pagination.pageSize * (pagination.page -1) + 1 )}}</strong> hasta
+          <strong>{{ pagination.pageSize * (pagination.page -1) + items.length }}</strong>
           <v-btn text :disabled="pagination.page <= 1" @click="getEnrollments(-1)">
             <v-icon class="primary--text">mdi-chevron-left</v-icon>
           </v-btn>
@@ -249,7 +251,7 @@ export default {
       dialog: {
         showed: false,
         item: {},
-        totalSelected: 0,
+        totalSelected: 0
       },
       pagination: {
         page: 1,
@@ -261,7 +263,7 @@ export default {
     };
   },
   watch: {
-    $route(to,from) {
+    $route(to, from) {
       if (to === from) return;
       if (this.status) {
         this.search.status = Number(this.status);
@@ -271,11 +273,13 @@ export default {
     },
     search: {
       handler() {
+        this.pagination.page = 1; // tornem a vore la 1a pàgina
         this.getEnrollments();
       },
       deep: true
     },
     process() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
       this.getEnrollments();
     },
     sortBy() {
@@ -283,6 +287,7 @@ export default {
       this.getEnrollments();
     },
     sortDesc() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
       this.getEnrollments();
     }
   },
@@ -333,10 +338,7 @@ export default {
       this.dialogProces = false;
       this.getEnrollments();
     },
-    getEnrollments(page = 0) {
-      // load de enrollments
-      this.loading = true;
-      this.items = [];
+    getParams(page) {
       let filters = [];
       if (this.process) filters.push("process=" + this.process);
       if (this.search.status) filters.push("status=" + this.search.status);
@@ -350,6 +352,34 @@ export default {
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
         if (this.sortDesc) filters.push("order=DESC");
       }
+      return filters;
+    },
+    manageError(err, msg, type) {
+      this.errors.push({
+        msg: msg + " - " + err.response.data.error,
+        type,
+        show: true
+      });
+      if (err.response.status === 401) {
+        let msgToken = "";
+        if (/expired/i.test(err.response.data.error)) {
+          msgToken = "Tu token ha caducado. Debes loguearte de nuevo";
+        } else {
+          msgToken = "No estás logueado. Debes loguearte";
+        }
+        this.errors.push({
+          msg: msgToken,
+          type: "error",
+          show: true
+        });
+        this.$router.push({ name: "login", params: { msgToken } });
+      }
+    },
+    getEnrollments(page = 0) {
+      // load de enrollments
+      this.loading = true;
+      this.items = [];
+      let filters = this.getParams(page);
       API.enrollments
         .getAll(filters.join("&"))
         .then(response => {
@@ -362,25 +392,7 @@ export default {
         })
         .catch(err => {
           this.loading = false;
-          this.errors.push({
-            msg: "Error loading enrollments - " + err.response.data.error,
-            type: "error",
-            show: true
-          });
-          if (err.response.status === 401) {
-            let msg = "";
-            if (/expired/i.test(err.response.data.error)) {
-              msg = "Tu token ha caducado. Debes loguearte de nuevo";
-            } else {
-              msg = "No estás logueado. Debes loguearte";
-            }
-            this.errors.push({
-              msg,
-              type: "error",
-              show: true
-            });
-            this.$router.push({name: 'login', params: { msg }})
-          }
+          this.manageError(err, "Error loading enrollments", "error");
         });
     },
     stateName(state) {
@@ -389,10 +401,10 @@ export default {
     },
     apiName(field) {
       switch (field) {
-        case 'student.surname':
-          return 'student';
-        case 'course.name':
-          return 'course';
+        case "student.surname":
+          return "student";
+        case "course.name":
+          return "course";
         default:
           return field;
       }
@@ -409,6 +421,62 @@ export default {
     paymentStatusName(id) {
       return this.$store.getters.getPaymentStatus(id).name;
     },
+    printData() {
+      // Comprobamos que se selecciona process y course
+      if (!this.process || !this.search.course) {
+        this.errors.push({
+          msg: "Has de filtrar al menys per convocatòria i cicle",
+          type: "error",
+          show: true
+        });
+        return;
+      }
+      let filters = this.getParams(0);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open(
+        "GET",
+        "https://matricula.cipfpbatoi.es/api" +
+          "/report/application?" +
+          filters.join("&"),
+        true
+      );
+      xhr.setRequestHeader("Authorization", "Bearer " + localStorage.token);
+      xhr.responseType = "blob";
+      let that = this;
+      xhr.onload = function() {
+        if (this.status === 200) {
+          var blob = new Blob([this.response], { type: "application/pdf" });
+          var link = document.createElement("a");
+          link.href = window.URL.createObjectURL(blob);
+          link.download = "report.pdf";
+          link.click();
+        } else {
+          that.errors.push({
+            msg: 'Error generating PDF - ' + this.statusText,
+            type: "error",
+            show: true
+          });
+        }
+      };
+
+      xhr.send();
+      // API.enrollments
+      //   .getReport(filters.join("&"))
+      //   .then(response => {
+      //     console.log(response)
+      //            let file = new Blob([response.data], {type: 'application/pdf'});
+      //  let fileURL = URL.createObjectURL(file);
+      //  window.open(fileURL);
+      //  var link = document.createElement('a');
+      //   link.href = fileURL; // window.URL.createObjectURL(blob);
+      //   link.download = "report.pdf";
+      //   link.click();
+      //   })
+      //   .catch(err => {
+      //     this.manageError(err, "Error generating PDF", 'error');
+      //   });
+    },
     openDialog(item) {
       if (item) {
         // Es canvia 1 registre
@@ -416,7 +484,7 @@ export default {
           id: item.id,
           name: `${item.student.surname}, ${item.student.name}`,
           oldStatus: String(item.status),
-          status: String(item.status),
+          status: String(item.status)
         };
         this.dialog.totalSelected = 1;
       } else {
@@ -425,16 +493,16 @@ export default {
           this.dialog.item = {
             id: this.selected[0].id,
             name: `${this.selected[0].student.surname}, ${this.selected[0].student.name}`,
-            oldStatus: '',
-            status: '',
-          }
+            oldStatus: "",
+            status: ""
+          };
           this.dialog.totalSelected = this.selected.length;
         } else {
           this.errors.push({
-                msg: 'No hi ha cap registre sel·leccionat',
-                type: "info",
-                show: true
-          })
+            msg: "No hi ha cap registre sel·leccionat",
+            type: "info",
+            show: true
+          });
           return;
         }
       }
@@ -450,51 +518,62 @@ export default {
             show: true
           });
         } else {
-          API.enrollments.modifyStatus(this.dialog.item.id, this.dialog.item.status)
-          .then(response => {
-            let oldEnrollment = this.items.findIndex(
-              item => item.id === this.dialog.item.id
-            );
-            this.items.splice(oldEnrollment, 1, response.data.data);
-            this.errors.push({
-              msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
-              type: "success",
-              show: true
-            });
-          })
-          .catch(err => this.errors.push({
-              msg: "Error setting state - " + err.response.data.error,
-              type: "error",
-              show: true
+          API.enrollments
+            .modifyStatus(this.dialog.item.id, this.dialog.item.status)
+            .then(response => {
+              let oldEnrollment = this.items.findIndex(
+                item => item.id === this.dialog.item.id
+              );
+              this.items.splice(oldEnrollment, 1, response.data.data);
+              this.errors.push({
+                msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
+                type: "success",
+                show: true
+              });
             })
-          )
+            .catch(err =>
+              this.errors.push({
+                msg: "Error setting state - " + err.response.data.error,
+                type: "error",
+                show: true
+              })
+            );
         }
       } else {
         // se cambian varios estados
         let stateChangePromises = [];
-        this.selected.forEach(item => stateChangePromises
-          .push(API.enrollments.modifyStatus(item.id, this.dialog.item.status)));
+        this.selected.forEach(item =>
+          stateChangePromises.push(
+            API.enrollments.modifyStatus(item.id, this.dialog.item.status)
+          )
+        );
         if (stateChangePromises.length) {
           Promise.all(stateChangePromises)
             .then(values => {
-              let firstAlumn = values[0].data.data.student.surname + ', ' + values[0].data.data.student.name;
+              let firstAlumn =
+                values[0].data.data.student.surname +
+                ", " +
+                values[0].data.data.student.name;
               this.errors.push({
-                msg: `Canviat l'estat de "${firstAlumn}" i de altres ${values.length - 1}"`,
+                msg: `Canviat l'estat de "${firstAlumn}" i de altres ${values.length -
+                  1}"`,
                 type: "success",
                 show: true
-              })
+              });
             })
-            .catch(err => this.errors.push({
-              msg: "Error setting state - " + err.response.data.error,
-              type: "error",
-              show: true
-            }))
+            .catch(err =>
+              this.errors.push({
+                msg: "Error setting state - " + err.response.data.error,
+                type: "error",
+                show: true
+              })
+            );
         } else {
           this.errors.push({
             msg: "No has seleccionado ningún alumno",
             type: "info",
             show: true
-          })
+          });
         }
       }
     }

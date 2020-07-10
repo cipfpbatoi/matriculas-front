@@ -58,6 +58,7 @@ export default {
             let tokenDecoded = jwt_decode(respLogin.data.token);
             localStorage.setItem('token', respLogin.data.token);
             localStorage.setItem('expires', tokenDecoded.exp);
+            localStorage.setItem('refresh_token', respLogin.data.refresh_token);
             // Demanem el perfil
             const respProfile = await API.users.profile();
             respProfile.data.data.token = respLogin.data.token;
@@ -74,18 +75,14 @@ export default {
         localStorage.removeItem('token');
         commit('setUser', {});
     },
-    refreshToken(context) {
-        alert('refresca');
-        let user = context.state.user;
-        API.users.refresh(user.refreshToken)
+    refreshToken() {
+        // Al ser llamado desde el API no tiene acceso al context
+        API.users.refresh(localStorage.refresh_token)
         .then(respLogin => {
             let tokenDecoded = jwt_decode(respLogin.data.token);
             localStorage.setItem('token', respLogin.data.token);
             localStorage.setItem('expires', tokenDecoded.exp);
-            user.token = respLogin.data.token;
-            user.refreshToken = respLogin.data.refresh_token;
-            user.roles = tokenDecoded.roles;
-            context.commit('setUser', user);
+            localStorage.setItem('refresh_token', respLogin.data.refresh_token);
         })
         .catch((err) => {
             localStorage.removeItem('token');

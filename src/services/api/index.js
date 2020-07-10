@@ -15,7 +15,8 @@ axios.interceptors.request.use((config) => {
     if (token) {
         config.headers['Authorization'] = 'Bearer ' + token;
         // comprobamos si hemos de refrescar el token
-        if (new Date() / 1000 + TimeToRefresh > localStorage.expires) {
+        if (config.url.startsWith(`${baseURL}/application`) 
+            && new Date() / 1000 + TimeToRefresh > localStorage.expires) {
             StoreActions.refreshToken();
         }
     }
@@ -35,6 +36,7 @@ axios.interceptors.response.use((response) => {
 
 const enrollments = {
     getAll: (params) => axios.get(`${baseURL}/application` + (params ? `?${params}` : '')),
+    getReport: (params) => axios.get(`${baseURL}/report/application` + (params ? `?${params}` : '')),
     getOne: (id) => axios.get(`${baseURL}/application/${id}`),
     modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status`, `status=${state}`),
 };
