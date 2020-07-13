@@ -15,7 +15,7 @@ axios.interceptors.request.use((config) => {
     if (token) {
         config.headers['Authorization'] = 'Bearer ' + token;
         // comprobamos si hemos de refrescar el token
-        if (config.url.startsWith(`${baseURL}/application`) 
+        if (config.url === `${baseURL}/application` || config.url.startsWith(`${baseURL}/application?`) 
             && new Date() / 1000 + TimeToRefresh > localStorage.expires) {
             StoreActions.refreshToken();
         }

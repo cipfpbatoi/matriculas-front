@@ -10,8 +10,8 @@
             <v-icon>{{ item.icon }}</v-icon>
           </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title @click="go(item.path)">{{ item.name }}</v-list-item-title>
-              <template v-if="logged">
+              <v-list-item-title :title="item.name" @click="go(item.path)">{{ item.name }}</v-list-item-title>
+              <!-- <template v-if="logged">
                 <v-list-item v-for="itemStatus in selectableStatus" :key="itemStatus.id"
                   @click="go(item.path + '/status/' + itemStatus.id)">
                   <v-list-item-content>
@@ -20,7 +20,7 @@
                     </v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
-              </template>
+              </template> -->
             </v-list-item-content>
         </v-list-item>
         <v-list-item v-if="logged" link @click="go('/')">

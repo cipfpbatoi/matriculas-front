@@ -8,46 +8,46 @@ export default {
                 resolve();
                 return;
             }
-            API.data.getStatus()
+            API.data.getProcesses()
                 .then((resp) => {
-                    context.commit('setStatus', resp.data.data);
+                    context.commit('setProcesses', resp.data.data);
                     context.commit('setLoaded', true);
-                    resolve(resp.data.data);
+                    resolve(context.getters.getActualProcess);
                 })
                 .catch((err) => {
                     context.commit('setLoaded', false);
                     reject(err);
                 });
-            // Se repite lo mismo para Courses, Processes, Schoole_years. Cambiar a Promises.all
-            API.data.getProcesses()
+            // Se repite lo mismo para Courses, Status, Schoole_years. Cambiar a Promises.all
+            API.data.getStatus()
                 .then((resp) => {
-                    context.commit('setProcesses', resp.data.data);
+                    context.commit('setStatus', resp.data.data);
                     context.commit('setLoaded', true);
-                    resolve(resp.data.data);
+//                    resolve(resp.data.data);
                 })
-                .catch((err) => {
+                .catch(() => {
                     context.commit('setLoaded', false);
-                    reject(err);
+//                    reject(err);
                 });
             API.data.getCourses()
                 .then((resp) => {
                     context.commit('setCourses', resp.data.data);
                     context.commit('setLoaded', true);
-                    resolve(resp.data.data);
+//                    resolve(resp.data.data);
                 })
-                .catch((err) => {
+                .catch(() => {
                     context.commit('setLoaded', false);
-                    reject(err);
+//                    reject(err);
                 });
             API.data.getPaymentStatus()
                 .then((resp) => {
                     context.commit('setPaymentStatus', resp.data.data);
                     context.commit('setLoaded', true);
-                    resolve(resp.data.data);
+//                    resolve(resp.data.data);
                 })
-                .catch((err) => {
+                .catch(() => {
                     context.commit('setLoaded', false);
-                    reject(err);
+//                    reject(err);
                 });
 
         })
@@ -68,11 +68,15 @@ export default {
             return respProfile.data;
         } catch(err) {
             localStorage.removeItem('token');
+            localStorage.removeItem('expires');
+            localStorage.removeItem('refresh_token');
             throw err;
         }
     },
     logout({ commit }) {
         localStorage.removeItem('token');
+        localStorage.removeItem('expires');
+        localStorage.removeItem('refresh_token');
         commit('setUser', {});
     },
     refreshToken() {
@@ -86,7 +90,9 @@ export default {
         })
         .catch((err) => {
             localStorage.removeItem('token');
-            throw err;
+            localStorage.removeItem('expires');
+            localStorage.removeItem('refresh_token');
+                throw err;
         })
     }
 }

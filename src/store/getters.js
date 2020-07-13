@@ -16,6 +16,9 @@ export default {
   getProcesses: (state) => {
     return state.processes;
   },
+  getActualProcess: (state) => {
+    return state.processes[state.processes.length -1];
+  },
   getSchoolYears: (state) => {
     return state.schoolYears;
   },

@@ -56,10 +56,6 @@ export default {
     }
   },
   mounted() {
-    if (this.logged) {
-      alert("Ja estas loguejat");
-      this.$router.push("/");
-    }
     if (this.$route.params.msg) {
       this.errors.push({
         msg: this.$route.params.msg,
@@ -70,25 +66,38 @@ export default {
   },
 
   methods: {
+    getData() {},
     async validateForm() {
       this.$refs.form.validate();
       if (this.valid) {
         this.sending = true;
 
         try {
-          const resp = await this.$store.dispatch("login", {
+          await this.$store.dispatch("login", {
             username: this.email,
             password: this.password
           });
           this.sending = false;
           this.email = this.password = "";
-          console.log(resp);
 
-          if (this.redirectTo) {
-            this.$router.push(this.redirectTo);
-          } else {
-            this.$router.push("/");
-          }
+          // Load the status if not loaded
+          this.$store
+            .dispatch("loadData")
+            .then((process) => {
+              if (this.redirectTo) {
+                this.$router.push(this.redirectTo);
+              } else {
+                let path = process ? '/process/' + process.id + '/status/2' : '/';
+                this.$router.push(path);
+              }
+            })
+            .catch(err =>
+              this.errors.push({
+                msg: "Error loading status - " + err,
+                type: "error",
+                show: true
+              })
+            );
         } catch (err) {
           this.sending = false;
           console.log(err);

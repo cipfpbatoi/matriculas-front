@@ -157,21 +157,26 @@
           <v-icon
             title="Canviar estat"
             class="primary--text"
-            @click="openDialog(item)"
+            @click="openStatusDialog(item)"
           >mdi-checkbox-multiple-marked</v-icon>
         </template>
       </v-data-table>
 
       <v-row class="text-center pt-2">
-        <v-col cols="10">
+        <v-col cols="2">
           Mostrando de
           <strong>{{ (pagination.pageSize * (pagination.page -1) + 1 )}}</strong> hasta
           <strong>{{ pagination.pageSize * (pagination.page -1) + items.length }}</strong>
-          <v-btn text :disabled="pagination.page <= 1" @click="getEnrollments(-1)">
+        </v-col>
+        <v-col cols="8">
+          <v-btn text :disabled="pagination.page <= 1" @click="firstPage">
+            <v-icon class="primary--text">mdi-chevron-double-left</v-icon>
+          </v-btn>
+          <v-btn text :disabled="pagination.page <= 1" @click="prevPage">
             <v-icon class="primary--text">mdi-chevron-left</v-icon>
           </v-btn>
           <span class="primary--text">Pàgina {{ pagination.page }}</span>
-          <v-btn text :disabled="!pagination.more" @click="getEnrollments(1)">
+          <v-btn text :disabled="!pagination.more" @click="nextPage">
             <v-icon class="primary--text">mdi-chevron-right</v-icon>
           </v-btn>
         </v-col>
@@ -188,9 +193,9 @@
       </v-row>
     </v-card>
 
-    <v-btn class="primary" @click="openDialog()">Canviar estat als sel·leccionats</v-btn>
+    <v-btn class="primary" @click="openStatusDialog()">Canviar estat als sel·leccionats</v-btn>
 
-    <v-dialog v-model="dialog.showed" persistent max-width="400px">
+    <v-dialog v-model="statusDialog.showed" persistent max-width="400px">
       <v-card>
         <v-card-title class="primary--text">
           <span class="headline">Canviar estat</span>
@@ -199,11 +204,11 @@
           <v-container>
             <p>
               Indica el nou estat per a l'alumne
-              <strong>{{ dialog.item.name }}</strong>
-              <strong v-if="dialog.totalSelected > 1">i {{ dialog.totalSelected - 1 }} més</strong>
+              <strong>{{ statusDialog.item.name }}</strong>
+              <strong v-if="statusDialog.totalSelected > 1">i {{ statusDialog.totalSelected - 1 }} més</strong>
             </p>
             <v-select
-              v-model="dialog.item.status"
+              v-model="statusDialog.item.status"
               :items="statusForChange"
               item-text="name"
               item-value="id"
@@ -214,11 +219,19 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="dialog.showed = false">Close</v-btn>
+          <v-btn color="blue darken-1" text @click="statusDialog.showed = false">Close</v-btn>
           <v-btn color="blue darken-1" text @click="canviaEstat">Canvia</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="generalDialog.showed" persistent max-width="400px">
+      <v-card>
+        <v-title>{{ generalDialog.title }}</v-title>
+        <v-card-text>{{ generalDialog.message }}</v-card-text>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -248,13 +261,19 @@ export default {
       expanded: [],
       headers: headers.enrollments,
       errors: [],
-      dialog: {
+      statusDialog: {
         showed: false,
         item: {},
         totalSelected: 0
       },
+      generalDialog: {
+        showed: false,
+        title: '',
+        message: ''
+      },
       pagination: {
         page: 1,
+        toPage: 0,
         more: false,
         pageSize: DEFAULT_SIZE_PAGE
       },
@@ -300,6 +319,11 @@ export default {
   },
   computed: {
     tableTitle() {
+      if (!this.processes) {
+        // No se han cargado los datos, debe volver a loguearse
+        this.$store.dispatch('logout');
+        return 'Totes les convocatòries';
+      }
       return this.process
         ? this.processes.find(item => item.id == this.process).name
         : "Totes les convocatòries";
@@ -338,7 +362,7 @@ export default {
       this.dialogProces = false;
       this.getEnrollments();
     },
-    getParams(page) {
+    getParams() {
       let filters = [];
       if (this.process) filters.push("process=" + this.process);
       if (this.search.status) filters.push("status=" + this.search.status);
@@ -347,7 +371,12 @@ export default {
         filters.push("school_year=" + this.search.schoolYear);
       if (this.search.general) filters.push("search=" + this.search.general);
       if (this.pagination.more || this.pagination.page > 1) {
-        filters.push("page=" + (this.pagination.page + page));
+        if (this.pagination.toPage) {
+          filters.push("page=" + (this.pagination.toPage));
+          this.pagination.toPage = 0;
+        } else {
+          filters.push("page=" + (this.pagination.page));
+        }
         filters.push("sizePage=" + this.pagination.pageSize);
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
         if (this.sortDesc) filters.push("order=DESC");
@@ -375,11 +404,11 @@ export default {
         this.$router.push({ name: "login", params: { msgToken } });
       }
     },
-    getEnrollments(page = 0) {
+    getEnrollments() {
       // load de enrollments
       this.loading = true;
       this.items = [];
-      let filters = this.getParams(page);
+      let filters = this.getParams();
       API.enrollments
         .getAll(filters.join("&"))
         .then(response => {
@@ -421,6 +450,18 @@ export default {
     paymentStatusName(id) {
       return this.$store.getters.getPaymentStatus(id).name;
     },
+    prevPage() {
+      this.pagination.toPage = this.pagination.page - 1;
+      this.getEnrollments();
+    },
+    nextPage() {
+      this.pagination.toPage = this.pagination.page + 1;
+      this.getEnrollments();
+    },
+    firstPage() {
+      this.pagination.toPage = 1;
+      this.getEnrollments();
+    },
     printData() {
       // Comprobamos que se selecciona process y course
       if (!this.process || !this.search.course) {
@@ -446,12 +487,14 @@ export default {
       let that = this;
       xhr.onload = function() {
         if (this.status === 200) {
+          that.closeGeneralDialog(dialogId);
           var blob = new Blob([this.response], { type: "application/pdf" });
           var link = document.createElement("a");
           link.href = window.URL.createObjectURL(blob);
           link.download = "report.pdf";
           link.click();
         } else {
+          that.closeGeneralDialog(dialogId);
           that.errors.push({
             msg: 'Error generating PDF - ' + this.statusText,
             type: "error",
@@ -461,6 +504,7 @@ export default {
       };
 
       xhr.send();
+      let dialogId = this.openGeneralDialog('Generant informe','Per favor... espere', 5);
       // API.enrollments
       //   .getReport(filters.join("&"))
       //   .then(response => {
@@ -477,26 +521,46 @@ export default {
       //     this.manageError(err, "Error generating PDF", 'error');
       //   });
     },
-    openDialog(item) {
+    openGeneralDialog(title, message, seconds) {
+      this.generalDialog.title = title;
+      this.generalDialog.message = message;
+      this.generalDialog.showed = true;
+      return setTimeout(() => this.closeGeneralDialog(), seconds * 1000);
+    },
+    closeGeneralDialog(id) {
+      if (id) {
+        clearInterval(id);
+      } else {
+          this.errors.push({
+            msg: 'Error generating PDF - El servidor està tardant massa temps en respondre',
+            type: "error",
+            show: true
+          });
+      }
+      this.generalDialog.title = '';
+      this.generalDialog.message = '';
+      this.generalDialog.showed = false;
+    },
+    openStatusDialog(item) {
       if (item) {
         // Es canvia 1 registre
-        this.dialog.item = {
+        this.statusDialog.item = {
           id: item.id,
           name: `${item.student.surname}, ${item.student.name}`,
           oldStatus: String(item.status),
           status: String(item.status)
         };
-        this.dialog.totalSelected = 1;
+        this.statusDialog.totalSelected = 1;
       } else {
         // Es canvien tots els seleccionats
         if (this.selected.length) {
-          this.dialog.item = {
+          this.statusDialog.item = {
             id: this.selected[0].id,
             name: `${this.selected[0].student.surname}, ${this.selected[0].student.name}`,
             oldStatus: "",
             status: ""
           };
-          this.dialog.totalSelected = this.selected.length;
+          this.statusDialog.totalSelected = this.selected.length;
         } else {
           this.errors.push({
             msg: "No hi ha cap registre sel·leccionat",
@@ -506,23 +570,23 @@ export default {
           return;
         }
       }
-      this.dialog.showed = true;
+      this.statusDialog.showed = true;
     },
     canviaEstat() {
-      this.dialog.showed = false;
-      if (this.dialog.totalSelected === 1) {
-        if (this.dialog.item.oldStatus === this.dialog.item.status) {
+      this.statusDialog.showed = false;
+      if (this.statusDialog.totalSelected === 1) {
+        if (this.statusDialog.item.oldStatus === this.statusDialog.item.status) {
           this.errors.push({
-            msg: `No has canviat l'estat de "${this.dialog.item.name}"`,
+            msg: `No has canviat l'estat de "${this.statusDialog.item.name}"`,
             type: "info",
             show: true
           });
         } else {
           API.enrollments
-            .modifyStatus(this.dialog.item.id, this.dialog.item.status)
+            .modifyStatus(this.statusDialog.item.id, this.statusDialog.item.status)
             .then(response => {
               let oldEnrollment = this.items.findIndex(
-                item => item.id === this.dialog.item.id
+                item => item.id === this.statusDialog.item.id
               );
               this.items.splice(oldEnrollment, 1, response.data.data);
               this.errors.push({
@@ -544,7 +608,7 @@ export default {
         let stateChangePromises = [];
         this.selected.forEach(item =>
           stateChangePromises.push(
-            API.enrollments.modifyStatus(item.id, this.dialog.item.status)
+            API.enrollments.modifyStatus(item.id, this.statusDialog.item.status)
           )
         );
         if (stateChangePromises.length) {
