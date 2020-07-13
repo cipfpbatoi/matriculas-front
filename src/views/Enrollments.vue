@@ -412,7 +412,6 @@ export default {
       API.enrollments
         .getAll(filters.join("&"))
         .then(response => {
-          console.log(response);
           this.loading = false;
           this.pagination.page = Number(response.data.data.page);
           this.pagination.more = response.data.data.more;
