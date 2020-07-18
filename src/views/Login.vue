@@ -87,7 +87,7 @@ export default {
               if (this.redirectTo) {
                 this.$router.push(this.redirectTo);
               } else {
-                let path = process ? '/process/' + process.id + '/status/2' : '/';
+                let path = process ? '/enrollments/process/' + process.id + '/status/2' : '/';
                 this.$router.push(path);
               }
             })

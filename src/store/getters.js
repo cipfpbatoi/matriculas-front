@@ -35,7 +35,7 @@ export default {
       let menu = [];
       state.processes.forEach(item => menu.push({
         name: item.name,
-        path: '/process/' + item.id,
+        path: '/enrollments/process/' + item.id,
         icon: 'mdi-folder'
       }))
       return menu;

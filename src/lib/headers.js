@@ -1,4 +1,40 @@
+const processes = [
+  {
+    text: "Id",
+    align: "start",
+    sortable: true,
+    value: "id",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Nom",
+    align: "start",
+    sortable: true,
+    value: "student.surname",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Inici",
+    align: "start",
+    sortable: true,
+    value: "start_date",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Fin",
+    align: "start",
+    sortable: true,
+    value: "end_date",
+    class: "primary--text  text-subtitle-2"
+  },
+];
 const enrollments = [
+  {
+    text: "Canviar estat",
+    value: "actions",
+    sortable: false,
+    class: "primary--text  text-subtitle-2"
+  },
   {
     text: "Id",
     align: "start",
@@ -80,12 +116,9 @@ const enrollments = [
     value: "insurance_payment_type",
     class: "primary--text  text-subtitle-2"
   },
-  {
-    text: "Canviar estat",
-    value: "actions",
-    sortable: false,
-    class: "primary--text  text-subtitle-2"
-  }
 ];
 
-export default { enrollments };
+export default { 
+  enrollments,
+  processes,
+};
