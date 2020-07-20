@@ -219,7 +219,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="statusDialog.showed = false">Close</v-btn>
+          <v-btn color="blue darken-1" text @click="statusDialog.showed = false">Tanca</v-btn>
           <v-btn color="blue darken-1" text @click="canviaEstat">Canvia</v-btn>
         </v-card-actions>
       </v-card>

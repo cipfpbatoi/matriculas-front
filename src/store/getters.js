@@ -17,7 +17,15 @@ export default {
     return state.processes;
   },
   getActualProcess: (state) => {
-    return state.processes[state.processes.length -1];
+    if (!state.processes.length) return {};
+    let now = new Date();
+    let actual = state.processes[0];
+    state.processes.forEach(process => {
+      if (process.end_date > actual.end_date && process.end_date < now.toISOString()) {
+        actual = process;
+      }
+    })
+    return actual;
   },
   getSchoolYears: (state) => {
     return state.schoolYears;
@@ -36,7 +44,7 @@ export default {
       state.processes.forEach(item => menu.push({
         name: item.name,
         path: '/enrollments/process/' + item.id,
-        icon: 'mdi-folder'
+        icon: 'mdi-folder-lock' + (item.type === 2 ? '-open':''),
       }))
       return menu;
     }

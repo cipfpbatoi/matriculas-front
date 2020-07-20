@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Enrollments from '../views/Enrollments.vue'
+import Processes from '../views/Processes.vue'
 import Login from '@/views/Login'
 
 Vue.use(VueRouter)
@@ -39,6 +40,12 @@ const routes = [
     name: 'enrollmentsperstatus',
     component: Enrollments,
     props: true,
+    beforeEnter: ifAuthenticated,
+  },
+  {
+    path: '/processes',
+    name: 'processes',
+    component: Processes,
     beforeEnter: ifAuthenticated,
   },
   {

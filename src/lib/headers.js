@@ -10,7 +10,7 @@ const processes = [
     text: "Nom",
     align: "start",
     sortable: true,
-    value: "student.surname",
+    value: "name",
     class: "primary--text  text-subtitle-2"
   },
   {
@@ -25,6 +25,12 @@ const processes = [
     align: "start",
     sortable: true,
     value: "end_date",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Accions",
+    value: "actions",
+    sortable: false,
     class: "primary--text  text-subtitle-2"
   },
 ];

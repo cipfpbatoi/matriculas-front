@@ -66,7 +66,6 @@ export default {
   },
 
   methods: {
-    getData() {},
     async validateForm() {
       this.$refs.form.validate();
       if (this.valid) {
@@ -77,49 +76,53 @@ export default {
             username: this.email,
             password: this.password
           });
-          this.sending = false;
-          this.email = this.password = "";
-
-          // Load the status if not loaded
-          this.$store
-            .dispatch("loadData")
-            .then((process) => {
-              if (this.redirectTo) {
-                this.$router.push(this.redirectTo);
-              } else {
-                let path = process ? '/enrollments/process/' + process.id + '/status/2' : '/';
-                this.$router.push(path);
-              }
-            })
-            .catch(err =>
-              this.errors.push({
-                msg: "Error loading status - " + err,
-                type: "error",
-                show: true
-              })
-            );
         } catch (err) {
           this.sending = false;
-          console.log(err);
-          if (err.response.status === 401) {
-            this.errors.push({
-              msg: "Usuari o contrasenya no vàlids",
-              type: "error",
-              show: true
-            });
-          } else {
-            this.errors.push({
-              msg:
-                "Server error - " + err + "(" + err.response.data.message + ")",
-              type: "error",
-              show: true
-            });
-          }
+          this.manageError(err, "Usuari o contrasenya no vàlids");
+          return;
         }
+
+        this.sending = false;
+        this.email = this.password = "";
+
+        this.$store
+          .dispatch("loadData")
+          .then(process => {
+            if (this.redirectTo) {
+              this.$router.push(this.redirectTo);
+            } else {
+              let path = process
+                ? "/enrollments/process/" + process.id + "/status/2"
+                : "/";
+              this.$router.push(path);
+            }
+          })
+          .catch(err =>
+            this.errors.push({
+              msg: "Error loading data - " + err,
+              type: "error",
+              show: true
+            })
+          );
       }
     },
     resetForm() {
       this.$refs.form.reset();
+    },
+    manageError(err, defaultMsg) {
+      if (err.response.status === 401) {
+        this.errors.push({
+          msg: defaultMsg,
+          type: "error",
+          show: true
+        });
+      } else {
+        this.errors.push({
+          msg: "Server error - " + err + "(" + err.response.data.message + ")",
+          type: "error",
+          show: true
+        });
+      }
     }
   }
 };

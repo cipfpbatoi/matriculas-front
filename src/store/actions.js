@@ -5,7 +5,7 @@ export default {
     loadData(context) {
         return new Promise((resolve, reject) => {
             if (context.state.loaded) {
-                resolve();
+                resolve(context.getters.getActualProcess);
                 return;
             }
             API.data.getProcesses()
@@ -77,7 +77,8 @@ export default {
         localStorage.removeItem('token');
         localStorage.removeItem('expires');
         localStorage.removeItem('refresh_token');
-        commit('setUser', {});
+//        commit('setUser', {});
+        commit('logout');
     },
     refreshToken() {
         // Al ser llamado desde el API no tiene acceso al context

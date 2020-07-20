@@ -17,4 +17,9 @@ export default {
   setUser (state, user) {
       state.user = user;
   },
+  logout(state) {
+    state.loaded = false;
+    ['status', 'paymentStatus', 'courses', 'processes'].forEach(item => state[item] = []);
+    state.user = {};
+  }
 }
