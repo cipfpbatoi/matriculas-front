@@ -28,6 +28,13 @@ const processes = [
     class: "primary--text  text-subtitle-2"
   },
   {
+    text: "Fitxer CSV",
+    align: "start",
+    sortable: false,
+    value: "file",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
     text: "Accions",
     value: "actions",
     sortable: false,
@@ -109,7 +116,7 @@ const enrollments = [
     class: "primary--text  text-subtitle-2",
   },
   {
-    text: "Tases",
+    text: "Taxes",
     align: "start",
     sortable: true,
     value: "fee_receipt_filename",

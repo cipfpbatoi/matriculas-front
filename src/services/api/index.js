@@ -40,6 +40,7 @@ const enrollments = {
     getReport: (params) => axios.get(`${baseURL}/report/application` + (params ? `?${params}` : '')),
     getOne: (id) => axios.get(`${baseURL}/application/${id}`),
     modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status`, `status=${state}`),
+    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/document`, file),
 };
 
 const data = {
@@ -51,14 +52,48 @@ const data = {
     getShoolYears: () => axios.get(`${baseURL}/school_years`),
 };
 
+const processes = {
+    getAll: () => axios.get(`${baseURL}/process`),
+    saveProcess: (process) => axios(getProcessOptions(process)),
+    // (process.id) 
+    //     ? axios.put(`${baseURL}/process/${process.id}`, process)
+    //     : axios.post(`${baseURL}/process`,
+    //         stringToUrlEncoded(process),
+    //         {
+    //             headers: { 
+    //               "Content-Type": "application/x-www-form-urlencoded"
+    //             }
+    //         }),
+    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/document`, file),
+    delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
+};
+
 const users = {
     login: (credentials) => axios.post(`${baseURL}/login_check`, credentials),
     refresh: (refreshToken) => axios.post(`${baseURL}/token/refresh`, refreshToken),
     profile: () => axios.get(`${baseURL}/user/profile`),
+    resetPsw: (user) => axios
+        .post(`${baseURL}/process/${user.id}/user/${user.student.dni}/credentials/reset`),
 };
 
 export default {
     enrollments,
+    processes,
     data,
     users,
 };
+
+function stringToUrlEncoded(params) {
+    return Object.entries(params)
+        .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+        .join('&');
+}
+
+function getProcessOptions(process) {
+    return {
+        method: process.id ? 'PUT' : 'POST',
+        url: `${baseURL}/process` + (process.id ? '/' + process.id : ''),
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        data: stringToUrlEncoded(process),
+    }
+}

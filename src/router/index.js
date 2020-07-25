@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Enrollments from '../views/Enrollments.vue'
-import Processes from '../views/Processes.vue'
+import Enrollments from '@/views/Enrollments'
+import Enrollment from '@/views/Enrollment';
+import Processes from '@/views/Processes'
 import Login from '@/views/Login'
-
+import NotFound from '@/views/NotFound';
 Vue.use(VueRouter)
 
 const ifAuthenticated = ((to, from, next) => {
@@ -43,6 +44,13 @@ const routes = [
     beforeEnter: ifAuthenticated,
   },
   {
+    path: '/enrollment/:id',
+    name: 'enrollment',
+    component: Enrollment,
+    props: true,
+    beforeEnter: ifAuthenticated,
+  },
+  {
     path: '/processes',
     name: 'processes',
     component: Processes,
@@ -60,6 +68,11 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+  },
+  {
+    path: '*',
+    name: 'notfound',
+    component: NotFound  
   }
 ]
 

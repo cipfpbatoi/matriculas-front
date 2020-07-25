@@ -8,7 +8,7 @@ export default {
                 resolve(context.getters.getActualProcess);
                 return;
             }
-            API.data.getProcesses()
+            API.processes.getAll()
                 .then((resp) => {
                     context.commit('setProcesses', resp.data.data);
                     context.commit('setLoaded', true);
@@ -95,5 +95,30 @@ export default {
             localStorage.removeItem('refresh_token');
                 throw err;
         })
+    },
+    saveProcess(context, process) {
+        return new Promise((resolv, reject) => {
+            API.processes.saveProcess(process)
+            .then(response => {
+                context.commit('setProcess', response.data.data);
+                resolv(response.data.data);
+            })
+            .catch(err => {
+                reject(err);
+            });
+        })
+    },
+    delProcess(context, process) {
+        return new Promise((resolv, reject) => {
+            API.processes.delProcess(process.id)
+            .then(() => {
+                context.commit('delProcess', process.id);
+                resolv();
+            })
+            .catch(err => {
+                reject(err);
+            });
+        })
     }
+
 }

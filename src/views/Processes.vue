@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="grey lighten-5">
     <v-card>
-      <v-row justify="center" v-for="(error, i) in errors" :key="i">
-        <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
+      <v-row justify="center" v-for="(message, i) in messages" :key="i">
+        <v-alert v-model="message.show" :type="message.type" dismissible>{{ message.msg }}</v-alert>
       </v-row>
       <v-card-title justify="center">
         <h2>Gestionar Convocatòries</h2>
@@ -15,7 +15,7 @@
           hide-details
         ></v-text-field>
         <v-spacer></v-spacer>
-        <v-btn color="primary" align="rigth" @click="openDialog">
+        <v-btn color="primary" align="rigth" @click="openDialog(null)">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-card-title>
@@ -27,12 +27,27 @@
         <template v-slot:item.end_date="{ item }">
           <span>{{ showDate(item.end_date) }}</span>
         </template>
+        <template v-slot:item.file="{ item }">
+          <a v-if="item.file" :href="item.file" target="_blank">
+            <v-icon class="mr-2">mdi-file-check-outline</v-icon>
+          </a>
+        </template>
         <template v-slot:item.actions="{ item }">
           <v-icon
             title="Canviar convocatòria"
             class="primary--text"
             @click="openDialog(item)"
           >mdi-pencil</v-icon>
+          <v-icon
+            title="Pujar fitxer CSV"
+            class="primary--text"
+            @click="openFileDialog(item)"
+          >mdi-upload</v-icon>
+          <v-icon
+            title="Eliminar convocatòria"
+            class="primary--text"
+            @click="deleteProcess(item)"
+          >mdi-delete</v-icon>
         </template>
       </v-data-table>
     </v-card>
@@ -58,19 +73,19 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-label>Data d'inici</v-label>
-                  <v-date-picker 
-                    v-model="dialog.item.start_date" 
+                  <v-text-field v-model="dialog.item.start_date" label="Data d'inici" readonly></v-text-field>
+                  <v-date-picker
+                    v-model="dialog.item.start_date"
                     label="Data d'inici"
                     locale="es-es"
                     required
-                    ></v-date-picker>
+                  ></v-date-picker>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-label>Data de fí</v-label>
-                  <v-date-picker 
-                    v-model="dialog.item.end_date" 
-                    label="Data de fí" 
+                  <v-date-picker
+                    v-model="dialog.item.end_date"
+                    label="Data de fí"
                     locale="es-es"
                     required
                   ></v-date-picker>
@@ -86,11 +101,60 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+      <v-dialog v-model="fileDialog.showed" persistent max-width="500px">
+      <v-card>
+        <v-card-title class="primary--text">
+          <span class="headline">Canvia fitxer d'alumnes</span>
+        </v-card-title>
+        <v-card-text>
+          <v-alert
+            type="error"
+          >ATENCIÓ: quan li dones a 'GUARDA' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
+          <v-file-input
+            v-model="fileDialog.file"
+            show-size
+            clearable
+            counter
+            chips
+            presistent-hint
+            :label="fileDialog.title"
+            :disabled="fileDialog.loading"
+          ></v-file-input>
+          <v-container v-if="fileDialog.loading">
+            <v-row class="fill-height" align-content="center" justify="center">
+              <v-col class="subtitle-1 text-center" cols="12">Pujant fitxer...</v-col>
+              <v-col cols="10">
+                <v-progress-linear color="primary accent-4" indeterminate rounded height="6"></v-progress-linear>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="blue darken-1"
+            text
+            :disabled="fileDialog.loading"
+            @click="fileDialog.showed = false"
+          >Tanca</v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            :disabled="fileDialog.loading"
+            @click="submitFile"
+          >Guarda</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import API from "@/services/api";
+const TIMEOUT = 15000;
+
+import API from "@/services/api"; 
+
 import headers from "@/lib/headers";
 
 export default {
@@ -98,10 +162,14 @@ export default {
     return {
       search: "",
       headers: headers.processes,
-      errors: [],
+      messages: [],
       dialog: {
         showed: false,
         item: {}
+      },
+      fileDialog: {
+        showed: false,
+        loading: false
       }
     };
   },
@@ -115,18 +183,26 @@ export default {
   },
   methods: {
     saveProcess() {
-      API.processes
-        .getAll()
-        .then(response => {
-          this.loading = false;
-          this.pagination.page = Number(response.data.data.page);
-          this.pagination.more = response.data.data.more;
-          this.pagination.pageSize = Number(response.data.data.sizePage);
-          this.items = response.data.data.applications;
-        })
-        .catch(err => {
-          this.manageError(err, "Error loading enrollments", "error");
-        });
+      let process = Object.assign({}, this.dialog.item);
+      if (typeof process.start_date === 'string') {
+        process.start_date = (process.start_date + ' 00:00:00');
+      }
+      if (typeof process.end_date === 'string') {
+        process.end_date = (process.end_date + ' 23:59:59');
+      }
+      this.$store.dispatch('saveProcess', process)
+      .then(response => {
+              this.dialog.showed = false;
+        this.messages.push({
+        msg: 'Guardada la convocatòria amb id ' + response.id,
+        type: 'success',
+        show: true
+      })
+      })
+      .catch(err => {
+        this.dialog.showed = false;
+        this.manageError(err, "Error saving process", "error")
+      })
     },
     showDate(date) {
       return date ? new Date(date).toLocaleDateString() : "---";
@@ -138,8 +214,83 @@ export default {
         this.dialog.item.end_date = item.end_date.split("T")[0];
       } else {
         this.dialog.item = {};
+        this.dialog.item.start_date = '';
+        this.dialog.item.end_date = '';
       }
       this.dialog.showed = true;
+    },
+    manageError(err, msg, type) {
+      this.messages.push({
+        msg: msg + " - " + err.response.data.error,
+        type,
+        show: true
+      });
+      if (err.response.status === 401) {
+        let msgToken = "";
+        if (/expired/i.test(err.response.data.error)) {
+          msgToken = "Tu token ha caducado. Debes loguearte de nuevo";
+        } else {
+          msgToken = "No estás logueado. Debes loguearte";
+        }
+        this.messages.push({
+          msg: msgToken,
+          type: "error",
+          show: true
+        });
+        this.$router.push({ name: "login", params: { msgToken } });
+      }
+    },
+    deleteProcess(item) {
+      if (confirm('Segur que vols eliminar la convocatòria "' + item.name + '"?')) {
+        this.$store.dispatch('delProcess', item)
+        .then(() => {
+          this.messages.push({
+            msg: 'Eliminada la convocatòria ' + item.id,
+            type: 'success',
+            show: true
+          })
+
+        })
+        .catch(err => {
+          this.dialog.showed = false;
+          this.manageError(err, "Error saving process", "error")
+        })
+      }
+    },
+    openFileDialog(item) {
+      this.fileDialog.file = null;
+      this.fileDialog.loading = false;
+      this.fileDialog.process = item;
+      this.fileDialog.showed = true;
+    },
+    submitFile() {
+      if (this.fileDialog.file) {
+        this.fileDialog.loading = true;
+        let dialogClearer = setTimeout(() => {
+          alert("Temps d'espera esgotat");
+          this.fileDialog.loading = false;
+        }, TIMEOUT);
+        let formData = new FormData();
+        formData.append(this.fileDialog.field, this.fileDialog.file, this.fileDialog.file.name)
+        API.process.submitFile(this.user.id, formData)
+        .then((response) => {
+          clearTimeout(dialogClearer);
+          this.fileDialog.showed = false;
+          alert('msg ok + cambiar fichero');
+          console.log(response)
+        })
+        .catch((err) => {
+          clearTimeout(dialogClearer);
+          this.fileDialog.loading = false;
+              this.messages.push({
+                msg: "Error uploading file - " + err.response.data.error,
+                type: "error",
+                show: true
+              })
+        })
+      } else {
+        alert('No has seleccionat cap fitxer');
+      }
     }
   }
 };

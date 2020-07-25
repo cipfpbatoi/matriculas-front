@@ -64,7 +64,6 @@ export default {
       });
     }
   },
-
   methods: {
     async validateForm() {
       this.$refs.form.validate();

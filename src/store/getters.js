@@ -1,6 +1,10 @@
 const ID_STATUS_INICIADO = 1; // Para filtrar los estados como este o inferiores
+const INSURANZE_CARD_PAY = 2; // Tipo de pago con tarjeta
 
 export default {
+  isCardPayment: () => (id) => {
+      return id === INSURANZE_CARD_PAY;
+  },
   getStatus: (state) => {
     return state.status;
   },

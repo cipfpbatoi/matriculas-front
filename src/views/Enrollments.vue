@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="grey lighten-5">
     <v-card>
-      <v-row justify="center" v-for="(error, i) in errors" :key="i">
-        <v-alert v-model="error.show" :type="error.type" dismissible>{{ error.msg }}</v-alert>
+      <v-row justify="center" v-for="(message, i) in messages" :key="i">
+        <v-alert v-model="message.show" :type="message.type" dismissible>{{ message.msg }}</v-alert>
       </v-row>
       <v-card-title justify="center">
         <h2>{{ tableTitle }}</h2>
@@ -159,6 +159,11 @@
             class="primary--text"
             @click="openStatusDialog(item)"
           >mdi-checkbox-multiple-marked</v-icon>
+          <v-icon
+            title="Veure detalls"
+            class="primary--text"
+            @click="viewEnrollment(item)"
+          >mdi-eye</v-icon>
         </template>
       </v-data-table>
 
@@ -242,7 +247,6 @@ import headers from "@/lib/headers";
 
 const DEFAULT_SIZE_PAGE = 25;
 // const INSURANZE_TRANS_PAY = 1;
-const INSURANZE_CARD_PAY = 2;
 
 export default {
   props: ["process", "status"],
@@ -260,7 +264,7 @@ export default {
       loading: true,
       expanded: [],
       headers: headers.enrollments,
-      errors: [],
+      messages: [],
       statusDialog: {
         showed: false,
         item: {},
@@ -351,7 +355,7 @@ export default {
         .dispatch("loadData")
         .then()
         .catch(err =>
-          this.errors.push({
+          this.messages.push({
             msg: "Error loading status - " + err,
             type: "error",
             show: true
@@ -383,8 +387,8 @@ export default {
       }
       return filters;
     },
-    manageError(err, msg, type) {
-      this.errors.push({
+    managemessage(err, msg, type) {
+      this.messages.push({
         msg: msg + " - " + err.response.data.error,
         type,
         show: true
@@ -396,7 +400,7 @@ export default {
         } else {
           msgToken = "No estás logueado. Debes loguearte";
         }
-        this.errors.push({
+        this.messages.push({
           msg: msgToken,
           type: "error",
           show: true
@@ -444,7 +448,7 @@ export default {
       return date ? new Date(date).toLocaleString() : "---";
     },
     isCardPayment(type) {
-      return type === INSURANZE_CARD_PAY;
+      return this.$store.getters.isCardPayment(type);
     },
     paymentStatusName(id) {
       return this.$store.getters.getPaymentStatus(id).name;
@@ -464,7 +468,7 @@ export default {
     printData() {
       // Comprobamos que se selecciona process y course
       if (!this.process || !this.search.course) {
-        this.errors.push({
+        this.messages.push({
           msg: "Has de filtrar al menys per convocatòria i cicle",
           type: "error",
           show: true
@@ -494,7 +498,7 @@ export default {
           link.click();
         } else {
           that.closeGeneralDialog(dialogId);
-          that.errors.push({
+          that.messages.push({
             msg: 'Error generating PDF - ' + this.statusText,
             type: "error",
             show: true
@@ -530,7 +534,7 @@ export default {
       if (id) {
         clearInterval(id);
       } else {
-          this.errors.push({
+          this.messages.push({
             msg: 'Error generating PDF - El servidor està tardant massa temps en respondre',
             type: "error",
             show: true
@@ -561,7 +565,7 @@ export default {
           };
           this.statusDialog.totalSelected = this.selected.length;
         } else {
-          this.errors.push({
+          this.messages.push({
             msg: "No hi ha cap registre sel·leccionat",
             type: "info",
             show: true
@@ -575,7 +579,7 @@ export default {
       this.statusDialog.showed = false;
       if (this.statusDialog.totalSelected === 1) {
         if (this.statusDialog.item.oldStatus === this.statusDialog.item.status) {
-          this.errors.push({
+          this.messages.push({
             msg: `No has canviat l'estat de "${this.statusDialog.item.name}"`,
             type: "info",
             show: true
@@ -588,14 +592,14 @@ export default {
                 item => item.id === this.statusDialog.item.id
               );
               this.items.splice(oldEnrollment, 1, response.data.data);
-              this.errors.push({
+              this.messages.push({
                 msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
                 type: "success",
                 show: true
               });
             })
             .catch(err =>
-              this.errors.push({
+              this.messages.push({
                 msg: "Error setting state - " + err.response.data.error,
                 type: "error",
                 show: true
@@ -617,7 +621,7 @@ export default {
                 values[0].data.data.student.surname +
                 ", " +
                 values[0].data.data.student.name;
-              this.errors.push({
+              this.messages.push({
                 msg: `Canviat l'estat de "${firstAlumn}" i de altres ${values.length -
                   1}"`,
                 type: "success",
@@ -625,20 +629,24 @@ export default {
               });
             })
             .catch(err =>
-              this.errors.push({
+              this.messages.push({
                 msg: "Error setting state - " + err.response.data.error,
                 type: "error",
                 show: true
               })
             );
         } else {
-          this.errors.push({
+          this.messages.push({
             msg: "No has seleccionado ningún alumno",
             type: "info",
             show: true
           });
         }
       }
+    },
+    viewEnrollment(item) {
+//      this.$router.push('/enrollment/'+item.id);
+      this.$router.push({ name: 'enrollment', params: { id: item.id, item } });
     }
   }
 };
