@@ -59,5 +59,22 @@ export default {
         icon: 'mdi-login',
       }
     ]
-  }
+  },
+  getDocTypeInfo: () => (type) => {
+    let info = {};
+    switch (type) {
+      case 1:
+        info.name = 'dni';
+        info.icon = 'mdi-card-account-details';
+        break;
+      case 2:
+        info.name = 'foto';
+        info.icon = 'mdi-account-box';
+        break;
+      default:
+        info.name = 'altres';
+        info.icon = 'mdi-file-check-outline';
+    }
+    return info;
+  },
 }

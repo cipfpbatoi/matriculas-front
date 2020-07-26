@@ -23,14 +23,14 @@ const routes = [
     beforeEnter: ifAuthenticated,
   },
   {
-    path: '/enrollments/process/:process',
+    path: '/enrollments/process/:processId',
     name: 'enrollmentsperprocess',
     component: Enrollments,
     props: true,
     beforeEnter: ifAuthenticated,
   },
   {
-    path: '/enrollments/process/:process/status/:status',
+    path: '/enrollments/process/:processId/status/:status',
     name: 'enrollmentsperprocessstatus',
     component: Enrollments,
     props: true,

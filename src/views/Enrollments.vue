@@ -54,7 +54,7 @@
         v-model="selected"
         show-select
         item-key="id"
-        :headers="headers"
+        :headers="getHeaders"
         :items="items"
         :search="search.general"
         :loading="loading"
@@ -96,6 +96,13 @@
             <v-icon class="mr-2">mdi-file-check-outline</v-icon>
           </a>
         </template>
+        <template v-slot:item.documents="{ item }">
+          <span v-for="doc in item.documents" :key="doc.id" color="primary">
+            <a :href="doc.filename" :title="docTypeInfo(doc.type).name" target="_blank">
+              <v-icon>{{ docTypeInfo(doc.type).icon }}</v-icon>
+            </a>
+          </span>
+        </template>
 
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
@@ -105,7 +112,7 @@
                 {{ item.student.email }}
                 <br />
                 <strong class="primary--text">Data de naixement:</strong>
-                {{ showDate(item.birthday) }}
+                {{ showDate(item.student.birthday) }}
                 <br />
                 <strong class="primary--text">Promociona:</strong>
                 <v-icon
@@ -115,8 +122,24 @@
                 <br />
                 <strong class="primary--text">Vegades presentat:</strong>
                 {{ item.presented_times }}
+                <template v-if="item.process.type==2">
+                  <br />
+                  <strong class="primary--text">Plaça reservada:</strong>
+                  <v-icon
+                    small
+                    :class="(item.reserved_places?'sucess':'error')+'--text'"
+                  >{{ item.reserved_places?'mdi-check':'mdi-window-close' }}</v-icon>
+                </template>
               </v-col>
               <v-col cols="12" sm="4">
+                <template v-if="item.process.type==2">
+                  <strong class="primary--text">Accepta Web Family:</strong>
+                  <v-icon
+                    small
+                    :class="(item.web_family_accept?'sucess':'error')+'--text'"
+                  >{{ item.web_family_accept?'mdi-check':'mdi-window-close' }}</v-icon>
+                  <br />
+                </template>
                 <strong class="primary--text">Accepta assistència:</strong>
                 <v-icon
                   small
@@ -159,11 +182,7 @@
             class="primary--text"
             @click="openStatusDialog(item)"
           >mdi-checkbox-multiple-marked</v-icon>
-          <v-icon
-            title="Veure detalls"
-            class="primary--text"
-            @click="viewEnrollment(item)"
-          >mdi-eye</v-icon>
+          <v-icon title="Veure detalls" class="primary--text" @click="viewEnrollment(item)">mdi-eye</v-icon>
         </template>
       </v-data-table>
 
@@ -210,7 +229,9 @@
             <p>
               Indica el nou estat per a l'alumne
               <strong>{{ statusDialog.item.name }}</strong>
-              <strong v-if="statusDialog.totalSelected > 1">i {{ statusDialog.totalSelected - 1 }} més</strong>
+              <strong
+                v-if="statusDialog.totalSelected > 1"
+              >i {{ statusDialog.totalSelected - 1 }} més</strong>
             </p>
             <v-select
               v-model="statusDialog.item.status"
@@ -236,7 +257,6 @@
         <v-card-text>{{ generalDialog.message }}</v-card-text>
       </v-card>
     </v-dialog>
-
   </v-container>
 </template>
 
@@ -246,10 +266,10 @@ import API from "@/services/api";
 import headers from "@/lib/headers";
 
 const DEFAULT_SIZE_PAGE = 25;
-// const INSURANZE_TRANS_PAY = 1;
 
 export default {
-  props: ["process", "status"],
+  name: "enrollment",
+  props: ["processId", "status"],
   data() {
     return {
       search: {
@@ -263,7 +283,7 @@ export default {
       selected: [],
       loading: true,
       expanded: [],
-      headers: headers.enrollments,
+      //      headers: headers.getEnrollmentsHeaders(this.process.type),
       messages: [],
       statusDialog: {
         showed: false,
@@ -272,8 +292,8 @@ export default {
       },
       generalDialog: {
         showed: false,
-        title: '',
-        message: ''
+        title: "",
+        message: ""
       },
       pagination: {
         page: 1,
@@ -285,6 +305,7 @@ export default {
       sortBy: ""
     };
   },
+
   watch: {
     $route(to, from) {
       if (to === from) return;
@@ -301,7 +322,7 @@ export default {
       },
       deep: true
     },
-    process() {
+    processId() {
       this.pagination.page = 1; // tornem a vore la 1a pàgina
       this.getEnrollments();
     },
@@ -314,6 +335,7 @@ export default {
       this.getEnrollments();
     }
   },
+
   mounted() {
     if (this.status) {
       this.search.status = Number(this.status);
@@ -321,16 +343,27 @@ export default {
     this.getData();
     this.getEnrollments();
   },
+
   computed: {
+    currentProcess() {
+      if (this.processes.length) {
+        return this.processes.find(item => item.id == this.processId);
+      }
+      return undefined;
+    },
+    getHeaders() {
+      const processType = this.currentProcess ? this.currentProcess.type : 0;
+      return headers.enrollments.filter(
+        header => !header.type || header.type === processType
+      );
+    },
     tableTitle() {
       if (!this.processes) {
         // No se han cargado los datos, debe volver a loguearse
-        this.$store.dispatch('logout');
-        return 'Totes les convocatòries';
+        this.$store.dispatch("logout");
+        return "Totes les convocatòries";
       }
-      return this.process
-        ? this.processes.find(item => item.id == this.process).name
-        : "Totes les convocatòries";
+      return this.currentProcess ? this.currentProcess.name : "Totes les convocatòries";
     },
     statusForChange() {
       return this.$store.getters.getSelectableStatus;
@@ -348,6 +381,7 @@ export default {
       return this.$store.getters.getProcesses;
     }
   },
+
   methods: {
     getData() {
       // Load the status if not loaded
@@ -368,7 +402,7 @@ export default {
     },
     getParams() {
       let filters = [];
-      if (this.process) filters.push("process=" + this.process);
+      if (this.processId) filters.push("process=" + this.processId);
       if (this.search.status) filters.push("status=" + this.search.status);
       if (this.search.course) filters.push("course=" + this.search.course);
       if (this.search.schoolYear)
@@ -376,10 +410,10 @@ export default {
       if (this.search.general) filters.push("search=" + this.search.general);
       if (this.pagination.more || this.pagination.page > 1) {
         if (this.pagination.toPage) {
-          filters.push("page=" + (this.pagination.toPage));
+          filters.push("page=" + this.pagination.toPage);
           this.pagination.toPage = 0;
         } else {
-          filters.push("page=" + (this.pagination.page));
+          filters.push("page=" + this.pagination.page);
         }
         filters.push("sizePage=" + this.pagination.pageSize);
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
@@ -453,6 +487,10 @@ export default {
     paymentStatusName(id) {
       return this.$store.getters.getPaymentStatus(id).name;
     },
+    docTypeInfo(type) {
+      return this.$store.getters.getDocTypeInfo(type);
+    },
+
     prevPage() {
       this.pagination.toPage = this.pagination.page - 1;
       this.getEnrollments();
@@ -467,7 +505,7 @@ export default {
     },
     printData() {
       // Comprobamos que se selecciona process y course
-      if (!this.process || !this.search.course) {
+      if (!this.processId || !this.search.course) {
         this.messages.push({
           msg: "Has de filtrar al menys per convocatòria i cicle",
           type: "error",
@@ -477,6 +515,8 @@ export default {
       }
       let filters = this.getParams(0);
 
+      // Hay que hacer la petición directamente con Ajax porque jQuery o Vue
+      // obtienen un PDF vacío
       var xhr = new XMLHttpRequest();
       xhr.open(
         "GET",
@@ -499,7 +539,7 @@ export default {
         } else {
           that.closeGeneralDialog(dialogId);
           that.messages.push({
-            msg: 'Error generating PDF - ' + this.statusText,
+            msg: "Error generating PDF - " + this.statusText,
             type: "error",
             show: true
           });
@@ -507,22 +547,11 @@ export default {
       };
 
       xhr.send();
-      let dialogId = this.openGeneralDialog('Generant informe','Per favor... espere', 5);
-      // API.enrollments
-      //   .getReport(filters.join("&"))
-      //   .then(response => {
-      //     console.log(response)
-      //            let file = new Blob([response.data], {type: 'application/pdf'});
-      //  let fileURL = URL.createObjectURL(file);
-      //  window.open(fileURL);
-      //  var link = document.createElement('a');
-      //   link.href = fileURL; // window.URL.createObjectURL(blob);
-      //   link.download = "report.pdf";
-      //   link.click();
-      //   })
-      //   .catch(err => {
-      //     this.manageError(err, "Error generating PDF", 'error');
-      //   });
+      let dialogId = this.openGeneralDialog(
+        "Generant informe",
+        "Per favor... espere",
+        5
+      );
     },
     openGeneralDialog(title, message, seconds) {
       this.generalDialog.title = title;
@@ -534,14 +563,15 @@ export default {
       if (id) {
         clearInterval(id);
       } else {
-          this.messages.push({
-            msg: 'Error generating PDF - El servidor està tardant massa temps en respondre',
-            type: "error",
-            show: true
-          });
+        this.messages.push({
+          msg:
+            "Error generating PDF - El servidor està tardant massa temps en respondre",
+          type: "error",
+          show: true
+        });
       }
-      this.generalDialog.title = '';
-      this.generalDialog.message = '';
+      this.generalDialog.title = "";
+      this.generalDialog.message = "";
       this.generalDialog.showed = false;
     },
     openStatusDialog(item) {
@@ -578,7 +608,9 @@ export default {
     canviaEstat() {
       this.statusDialog.showed = false;
       if (this.statusDialog.totalSelected === 1) {
-        if (this.statusDialog.item.oldStatus === this.statusDialog.item.status) {
+        if (
+          this.statusDialog.item.oldStatus === this.statusDialog.item.status
+        ) {
           this.messages.push({
             msg: `No has canviat l'estat de "${this.statusDialog.item.name}"`,
             type: "info",
@@ -586,7 +618,10 @@ export default {
           });
         } else {
           API.enrollments
-            .modifyStatus(this.statusDialog.item.id, this.statusDialog.item.status)
+            .modifyStatus(
+              this.statusDialog.item.id,
+              this.statusDialog.item.status
+            )
             .then(response => {
               let oldEnrollment = this.items.findIndex(
                 item => item.id === this.statusDialog.item.id
@@ -645,8 +680,7 @@ export default {
       }
     },
     viewEnrollment(item) {
-//      this.$router.push('/enrollment/'+item.id);
-      this.$router.push({ name: 'enrollment', params: { id: item.id, item } });
+      this.$router.push({ name: "enrollment", params: { id: item.id, item } });
     }
   }
 };

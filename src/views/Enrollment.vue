@@ -106,19 +106,53 @@
             class="mr-2"
             :title="item.last_payment.operation_id"
           >mdi-credit-card</v-icon>
-          <template v-else-if="item.insurance_receipt_filename">
-          <a
-            :href="item.insurance_receipt_filename"
-            :title="item.insurance_receipt_filename"
-            target="_blank"
-          >
-            <v-icon large class="mr-2">mdi-file-check-outline</v-icon>
-          </a>
-              <v-btn small color="warning" @click="openDialog('insurance')">Canviar</v-btn>
+          <template v-else>
+            <a v-if="item.insurance_receipt_filename"
+              :href="item.insurance_receipt_filename"
+              :title="item.insurance_receipt_filename"
+              target="_blank"
+            >
+              <v-icon large class="mr-2">mdi-file-check-outline</v-icon>
+            </a>
+            <v-btn small color="warning" @click="openDialog('insurance')">Canviar</v-btn>
           </template>
             </div>
           </v-col>
         </v-row>
+        <v-row v-if="item.type===2">
+          <v-col cols="12" sm="2">
+            <v-switch
+              v-model="item.reserved_places"
+              :label="`${toSiNo(item.assistance_condition_accept)} plaça reservada`"
+              readonly
+            ></v-switch>
+          </v-col>
+          <v-col cols="12" sm="3">
+            <v-switch
+              v-model="item.web_family_accept"
+              :label="`${toSiNo(item.assistance_condition_accept)} accepta Web Family`"
+              readonly
+            ></v-switch>
+          </v-col>
+          <v-col cols="12" sm="7">
+            <fieldset>
+              <legend>Altres documents</legend>
+            <span v-for="doc in item.documents" :key="doc.id" color="primary">
+              <a
+                :href="doc.filename"
+                :title="docTypeInfo(doc.type).name"
+                target="_blank"
+              >
+                <v-icon large>{{ docTypeInfo(doc.type).icon }}</v-icon>
+              </a>
+            </span>
+
+            </fieldset>
+
+          </v-col>
+
+        </v-row>
+
         <fieldset v-if="isCardPayment(item.insurance_payment_type)">
           <legend>Dades del pagament amb targeta</legend>
           <v-row>
@@ -257,6 +291,9 @@ export default {
     toSiNo(value) {
       return value ? "Sí" : "No";
     },
+    docTypeInfo(type) {
+      return this.$store.getters.getDocTypeInfo(type);
+    },
     openDialog(type) {
       this.fileDialog.file = null;
       this.fileDialog.loading = false;
@@ -325,3 +362,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+fieldset {
+  padding: 10px;
+}
+</style>

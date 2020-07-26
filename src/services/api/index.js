@@ -44,7 +44,6 @@ const enrollments = {
 };
 
 const data = {
-    //    getAll: () => axios.get(`${baseURL}/application/status`),
     getStatus: () => axios.get(`${baseURL}/application/status`),
     getPaymentStatus: () => axios.get(`${baseURL}/payment/status`),
     getProcesses: () => axios.get(`${baseURL}/process`),
@@ -55,15 +54,6 @@ const data = {
 const processes = {
     getAll: () => axios.get(`${baseURL}/process`),
     saveProcess: (process) => axios(getProcessOptions(process)),
-    // (process.id) 
-    //     ? axios.put(`${baseURL}/process/${process.id}`, process)
-    //     : axios.post(`${baseURL}/process`,
-    //         stringToUrlEncoded(process),
-    //         {
-    //             headers: { 
-    //               "Content-Type": "application/x-www-form-urlencoded"
-    //             }
-    //         }),
     submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/document`, file),
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
 };

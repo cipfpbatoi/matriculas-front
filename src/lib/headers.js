@@ -43,7 +43,7 @@ const processes = [
 ];
 const enrollments = [
   {
-    text: "Canviar estat",
+    text: "Accions",
     value: "actions",
     sortable: false,
     class: "primary--text  text-subtitle-2"
@@ -88,6 +88,14 @@ const enrollments = [
     align: "end",
     sortable: false,
     value: "student.nia",
+    class: "primary--text  text-subtitle-2",
+    type: 1,
+  },
+  {
+    text: "DNI",
+    align: "end",
+    sortable: false,
+    value: "student.dni",
     class: "primary--text  text-subtitle-2"
   },
   {
@@ -95,6 +103,7 @@ const enrollments = [
     sortable: true,
     value: "promote",
     class: "primary--text text-subtitle-2",
+    type: 1,
   },
   {
     text: "Cicle",
@@ -114,6 +123,7 @@ const enrollments = [
     sortable: true,
     value: "from_school_year",
     class: "primary--text  text-subtitle-2",
+    type: 1,
   },
   {
     text: "Taxes",
@@ -128,6 +138,14 @@ const enrollments = [
     sortable: true,
     value: "insurance_payment_type",
     class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Altres docs.",
+    align: "start",
+    sortable: true,
+    value: "documents",
+    class: "primary--text  text-subtitle-2",
+    type: 2,
   },
 ];
 
