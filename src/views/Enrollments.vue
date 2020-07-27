@@ -245,8 +245,7 @@
 import API from "@/services/api";
 import headers from "@/lib/headers";
 
-const DEFAULT_SIZE_PAGE = 25;
-// const INSURANZE_TRANS_PAY = 1;
+const DEFAULT_PAGE_SIZE = 25;
 
 export default {
   props: ["process", "status"],
@@ -279,7 +278,7 @@ export default {
         page: 1,
         toPage: 0,
         more: false,
-        pageSize: DEFAULT_SIZE_PAGE
+        pageSize: DEFAULT_PAGE_SIZE
       },
       sortDesc: false,
       sortBy: ""
@@ -381,7 +380,7 @@ export default {
         } else {
           filters.push("page=" + (this.pagination.page));
         }
-        filters.push("sizePage=" + this.pagination.pageSize);
+        filters.push("pageSize=" + this.pagination.pageSize);
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
         if (this.sortDesc) filters.push("order=DESC");
       }
@@ -419,8 +418,8 @@ export default {
           this.loading = false;
           this.pagination.page = Number(response.data.data.page);
           this.pagination.more = response.data.data.more;
-          this.pagination.pageSize = Number(response.data.data.sizePage);
-          this.items = response.data.data.applications;
+          this.pagination.pageSize = Number(response.data.data.page_size);
+          this.items = response.data.data.items;
         })
         .catch(err => {
           this.loading = false;
@@ -507,7 +506,7 @@ export default {
       };
 
       xhr.send();
-      let dialogId = this.openGeneralDialog('Generant informe','Per favor... espere', 5);
+      let dialogId = this.openGeneralDialog('Generant informe','Per favor... espere', 10);
       // API.enrollments
       //   .getReport(filters.join("&"))
       //   .then(response => {

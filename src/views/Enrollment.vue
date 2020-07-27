@@ -68,19 +68,19 @@
         </v-row>
         <v-row>
           <v-col cols="12" sm="2">
-            <v-switch v-model="item.promote" :label="`${toSiNo(item.promote)} promociona`" readonly></v-switch>
+            <v-switch v-model="item.promote" label="Promociona" readonly></v-switch>
           </v-col>
           <v-col cols="12" sm="3">
             <v-switch
               v-model="item.assistance_condition_accept"
-              :label="`${toSiNo(item.assistance_condition_accept)} accepta condicions`"
+              label="Accepta condicions"
               readonly
             ></v-switch>
           </v-col>
           <v-col cols="12" sm="3">
             <v-switch
               v-model="item.image_right_accept"
-              :label="`${toSiNo(item.image_right_accept)} accepta drets d'imatge`"
+              label="Accepta drets d'imatge"
               readonly
             ></v-switch>
           </v-col>
@@ -119,7 +119,7 @@
             </div>
           </v-col>
         </v-row>
-        <fieldset v-if="isCardPayment(item.insurance_payment_type)">
+        <fieldset v-if="isCardPayment(item.insurance_payment_type)" class="pa-lg-6">
           <legend>Dades del pagament amb targeta</legend>
           <v-row>
             <v-col cols="12" sm="5">
@@ -163,7 +163,7 @@
       </v-card-text>
       <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="$router.go(-1)">Tornar</v-btn>
+          <v-btn x-large color="primary" @click="$router.go(-1)">Tornar</v-btn>
       </v-card-actions>
     </v-card>
 
