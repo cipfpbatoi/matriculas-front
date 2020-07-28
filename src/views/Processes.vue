@@ -177,12 +177,17 @@
           <span class="headline">Enviar enllaç de matrícula</span>
         </v-card-title>
         <v-card-text>
-          <v-text-field>
+          <v-text-field
+            v-model="dniDialog.processName"
+            label="Convocatòria"
+            readonly
+          ></v-text-field>
+          <v-text-field
             v-model="dniDialog.dniAlumn"
             :rules="[rules.required, rules.dni]"
             label="Dni de l'alumne"
             required
-          </v-text-field>
+          ></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -235,14 +240,15 @@ export default {
           required: value => !!value || 'Camp obligatori',
           counter: value => value.length <= 20 || 'Max 20 caracters',
           email: value => {
-            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            return pattern.test(value) || 'Invalid e-mail.',
+            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return pattern.test(value) || 'Invalid e-mail.';
+          },
           dni: value => {
             const pattern = /^([A-Z]|[0-9]){2}[0-9]{7}[A-Z]$/
-            return pattern.test(value) || 'Dni invàlid',
-          }
+            return pattern.test(value) || 'Dni invàlid'
           },
-    };
+      },
+    }
   },
   mounted() {
     this.getData();
@@ -343,8 +349,9 @@ export default {
     },
     openDniDialog(item) {
       this.dniDialog.dniAlumn = "";
-      this.dniDialog.loading = false;
       this.dniDialog.processCode = item.code;
+      this.dniDialog.processName = item.name;
+      this.dniDialog.loading = false;
       this.dniDialog.showed = true;
     },
     submitFile() {
