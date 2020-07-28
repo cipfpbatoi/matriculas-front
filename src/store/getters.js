@@ -64,11 +64,11 @@ export default {
     let info = {};
     switch (type) {
       case 1:
-        info.name = 'dni';
+        info.name = 'Còpia dni/nie';
         info.icon = 'mdi-card-account-details';
         break;
       case 2:
-        info.name = 'foto';
+        info.name = 'Fotografia';
         info.icon = 'mdi-account-box';
         break;
       default:

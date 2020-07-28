@@ -138,12 +138,9 @@
             <fieldset>
               <legend>Altres documents</legend>
             <span v-for="doc in item.documents" :key="doc.id" color="primary">
-              <a
-                :href="doc.filename"
-                :title="docTypeInfo(doc.type).name"
-                target="_blank"
-              >
+              <a :href="doc.filename" target="_blank">
                 <v-icon large>{{ docTypeInfo(doc.type).icon }}</v-icon>
+                {{ docTypeInfo(doc.type).name }}
               </a>
             </span>
 
@@ -207,9 +204,7 @@
           <span class="headline">{{ fileDialog.title }}</span>
         </v-card-title>
         <v-card-text>
-          <v-alert
-            type="error"
-          >ATENCIÓ: quan li dones a 'GUARDAR' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
+          <v-alert type="error">ATENCIÓ: quan li dones a 'GUARDAR' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
           <v-file-input
             v-model="fileDialog.file"
             show-size

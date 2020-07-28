@@ -7,15 +7,8 @@
       <v-card-title justify="center">
         <h2>{{ tableTitle }}</h2>
         <v-spacer></v-spacer>
-        <v-text-field
-          v-model="search.general"
-          append-icon="mdi-magnify"
-          label="Cerca"
-          single-line
-          hide-details
-        ></v-text-field>
+        <v-text-field v-model="search.general" append-icon="mdi-magnify" label="Cerca" single-line hide-details></v-text-field>
         <v-spacer></v-spacer>
-
         <v-btn>
           <v-icon title="Imprimir" @click="printData">mdi-printer</v-icon>
         </v-btn>
@@ -415,8 +408,8 @@ export default {
         } else {
           filters.push("page=" + this.pagination.page);
         }
-        filters.push("sizePage=" + this.pagination.pageSize);
-        if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
+        filters.push("page_size=" + this.pagination.pageSize);
+        if (this.sortBy) filters.push("order_by=" + this.apiName(this.sortBy));
         if (this.sortDesc) filters.push("order=DESC");
       }
       return filters;
@@ -453,8 +446,8 @@ export default {
           this.loading = false;
           this.pagination.page = Number(response.data.data.page);
           this.pagination.more = response.data.data.more;
-          this.pagination.pageSize = Number(response.data.data.sizePage);
-          this.items = response.data.data.applications;
+          this.pagination.pageSize = Number(response.data.data.page_size);
+          this.items = response.data.data.items;
         })
         .catch(err => {
           this.loading = false;
