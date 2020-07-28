@@ -3,7 +3,7 @@ export default {
   status: [],
   paymentStatus: [],
   courses: [],
-  schoolYears: ["1", "2", "FCTs"],
+  schoolYears: ["1", "2", "FCT"],
   processes: [], 
   user: {},
 }

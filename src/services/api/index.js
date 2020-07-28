@@ -54,7 +54,7 @@ const data = {
 const processes = {
     getAll: () => axios.get(`${baseURL}/process`),
     saveProcess: (process) => axios(getProcessOptions(process)),
-    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/document`, file),
+    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/payment/document`, file),
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
 };
 
