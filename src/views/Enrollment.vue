@@ -209,7 +209,7 @@
         <v-card-text>
           <v-alert
             type="error"
-          >ATENCIÓ: quan li dones a 'GUARDA' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
+          >ATENCIÓ: quan li dones a 'GUARDAR' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
           <v-file-input
             v-model="fileDialog.file"
             show-size
