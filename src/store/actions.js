@@ -49,6 +49,16 @@ export default {
                     context.commit('setLoaded', false);
 //                    reject(err);
                 });
+            API.data.getDocumentTypesStatus()
+                .then((resp) => {
+                    context.commit('setDocTypes', resp.data.data);
+                    context.commit('setLoaded', true);
+//                    resolve(resp.data.data);
+                })
+                .catch(() => {
+                    context.commit('setLoaded', false);
+//                    reject(err);
+                });
 
         })
     },

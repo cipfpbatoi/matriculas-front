@@ -43,13 +43,6 @@ const processes = [
     class: "primary--text  text-subtitle-2"
   },
   {
-    text: "Fitxer CSV",
-    align: "start",
-    sortable: false,
-    value: "file",
-    class: "primary--text  text-subtitle-2"
-  },
-  {
     text: "Accions",
     value: "actions",
     sortable: false,

@@ -141,11 +141,14 @@
             <fieldset>
               <legend>Altres documents</legend>
             <span v-for="doc in item.documents" :key="doc.id" color="primary">
-              <a :href="doc.filename" target="_blank">
-                <v-icon large>{{ docTypeInfo(doc.type).icon }}</v-icon>
                 {{ docTypeInfo(doc.type).name }}
+              <a :href="doc.filename" :title="docTypeInfo(doc.type).name" target="_blank">
+                <v-icon large>{{ docTypeInfo(doc.type).icon }}</v-icon>
               </a>
+              <v-btn small color="warning" @click="openDialogAltres(doc)">Canviar {{ docTypeInfo(doc.type).name }}</v-btn>
             </span>
+            -----
+              <v-btn small right color="warning" @click="openDialogAltres()">Nou document</v-btn>
 
             </fieldset>
 
@@ -208,6 +211,15 @@
         </v-card-title>
         <v-card-text>
           <v-alert type="error">ATENCIÓ: quan li dones a 'GUARDAR' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
+            <v-select v-if="fileDialog.showType"
+              v-model="fileDialog.docType"
+              :items="documentTypes"
+              item-text="name"
+              item-value="id"
+              label="Tipus de document"
+              required
+              :readonly="!!fileDialog.docType"
+            ></v-select>
           <v-file-input
             v-model="fileDialog.file"
             show-size
@@ -215,7 +227,7 @@
             counter
             chips
             presistent-hint
-            :label="fileDialog.title"
+            label="Nou fitxer"
             :disabled="fileDialog.loading"
           ></v-file-input>
           <v-container v-if="fileDialog.loading">
@@ -274,7 +286,10 @@ export default {
     },
     statusForChange() {
       return this.$store.getters.getSelectableStatus;
-    }
+    },
+    documentTypes() {
+      return this.$store.getters.getDocTypes;
+    },
   },
   methods: {
     isCardPayment(type) {
@@ -290,11 +305,12 @@ export default {
       return value ? "Sí" : "No";
     },
     docTypeInfo(type) {
-      return this.$store.getters.getDocTypeInfo(type);
+      return this.documentTypes.find(item => item.id === type);
     },
     openDialog(type) {
       this.fileDialog.file = null;
       this.fileDialog.loading = false;
+      this.fileDialog.showType = false;
       switch (type) {
         case "fee":
           this.fileDialog.title = "Canvia fitxer de Taxes";
@@ -305,6 +321,17 @@ export default {
           this.fileDialog.field = "insurance_receipt_file";
           break;
       }
+      this.fileDialog.showed = true;
+    },
+    openDialogAltres(doc) {
+      this.fileDialog.file = null;
+      this.fileDialog.loading = false;
+      this.fileDialog.docType = doc ? doc.type : false;
+      this.fileDialog.showType = true;
+      this.fileDialog.field = "file";
+      this.fileDialog.title = doc 
+        ? "Canvia fitxer de " + this.docTypeInfo(doc.type).name
+        : 'Nou fitxer';
       this.fileDialog.showed = true;
     },
     resetPsw() {
@@ -332,8 +359,11 @@ export default {
           this.fileDialog.loading = false;
         }, TIMEOUT);
         let formData = new FormData();
-        formData.append(this.fileDialog.field, this.fileDialog.file, this.fileDialog.file.name)
-        API.processes.submitFile(this.item.id, formData)
+        formData.append(this.fileDialog.field, this.fileDialog.file, this.fileDialog.file.name);
+        const apiMethod = (this.fileDialog.field === 'file') 
+          ? 'submitOtherFile'
+          : 'submitPaymentFile';
+        API.enrollments[apiMethod](this.item.id, formData, this.fileDialog.docType)
         .then((response) => {
           clearTimeout(dialogClearer);
           this.fileDialog.showed = false;

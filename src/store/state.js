@@ -5,5 +5,6 @@ export default {
   courses: [],
   schoolYears: ["1", "2", "FCT"],
   processes: [], 
+  documentTypes: [],
   user: {},
 }

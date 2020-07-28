@@ -28,13 +28,8 @@
           <span>{{ showDate(item.end_date) }}</span>
         </template>
         <template v-slot:item.process_form_url="{ item }">
-          <a :href="item.process_form_url" target="_blank">
+          <a :href="item.process_form_url" :title="item.process_form_url" target="_blank">
             <v-icon color="primary" class="mr-2">mdi-link-variant</v-icon>
-          </a>
-        </template>
-        <template v-slot:item.file="{ item }">
-          <a v-if="item.file" :href="item.file" target="_blank">
-            <v-icon class="mr-2">mdi-file-check-outline</v-icon>
           </a>
         </template>
         <template v-slot:item.actions="{ item }">
@@ -128,12 +123,18 @@
     <v-dialog v-model="fileDialog.showed" persistent max-width="500px">
       <v-card>
         <v-card-title class="primary--text">
-          <span class="headline">Canvia fitxer d'alumnes</span>
+          <span class="headline">Pujar fitxer CSV d'alumnes</span>
         </v-card-title>
         <v-card-text>
           <v-alert
-            type="error"
-          >ATENCIÓ: quan li dones a 'GUARDA' el fitxer que puges sobreescriurà l'actual, que no podrà ser recuperat de cap manera !!!</v-alert>
+            type="warning"
+          >ATENCIÓ: quan li dones a 'GUARDA' els alumnes del fitxer que puges 
+            s'afegiran als que hi ha preinscrits per a aquesta convocatòria</v-alert>
+          <v-text-field
+            v-model="fileDialog.process.name"
+            label="Convocatòria"
+            readonly
+          ></v-text-field>
           <v-file-input
             v-model="fileDialog.file"
             show-size
@@ -228,7 +229,8 @@ export default {
       },
       fileDialog: {
         showed: false,
-        loading: false
+        loading: false,
+        process: {},
       },
       dniDialog: {
         showed: false,
@@ -343,8 +345,8 @@ export default {
     },
     openFileDialog(item) {
       this.fileDialog.file = null;
-      this.fileDialog.loading = false;
       this.fileDialog.process = item;
+      this.fileDialog.loading = false;
       this.fileDialog.showed = true;
     },
     openDniDialog(item) {

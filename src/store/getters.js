@@ -66,21 +66,10 @@ export default {
       }
     ]
   },
-  getDocTypeInfo: () => (type) => {
-    let info = {};
-    switch (type) {
-      case 1:
-        info.name = 'Còpia dni/nie';
-        info.icon = 'mdi-card-account-details';
-        break;
-      case 2:
-        info.name = 'Fotografia';
-        info.icon = 'mdi-account-box';
-        break;
-      default:
-        info.name = 'altres';
-        info.icon = 'mdi-file-check-outline';
-    }
-    return info;
+  getDocTypes: (state) => {
+    return state.documentTypes;
+  },
+  getDocTypeInfo: (state) => (id) => {
+    return state.documentTypes.find(item => item.id === id);
   },
 }

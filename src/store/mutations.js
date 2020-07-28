@@ -28,6 +28,21 @@ export default {
   setLoaded (state, value) {
       state.loaded = value;
   },
+  setDocTypes (state, data) {
+    state.documentTypes = data;
+    state.documentTypes.forEach(type => {
+      switch (type.id) {
+        case 1:
+          type.icon = 'mdi-card-account-details';
+          break;
+        case 2:
+          type.icon = 'mdi-account-box';
+          break;
+        default:
+          type.icon = 'mdi-file-check-outline';
+      } 
+    })
+  },
   setUser (state, user) {
       state.user = user;
   },

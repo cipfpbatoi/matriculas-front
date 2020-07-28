@@ -36,11 +36,17 @@ axios.interceptors.response.use((response) => {
 });
 
 const enrollments = {
-    getAll: (params) => axios.get(`${baseURL}/application` + (params ? `?${params}` : '')),
-    getReport: (params) => axios.get(`${baseURL}/report/application` + (params ? `?${params}` : '')),
+    getAll: (params) => axios
+        .get(`${baseURL}/application` + (params ? `?${params}` : '')),
+    getReport: (params) => axios
+        .get(`${baseURL}/report/application` + (params ? `?${params}` : '')),
     getOne: (id) => axios.get(`${baseURL}/application/${id}`),
-    modifyStatus: (id, state) => axios.put(`${baseURL}/application/${id}/status`, `status=${state}`),
-    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/document`, file),
+    modifyStatus: (id, state) => axios
+        .put(`${baseURL}/application/${id}/status`, `status=${state}`),
+    submitPaymentFile: (userId, file) => axios
+        .post(`${baseURL}/application/${userId}/payment/document`, file),
+    submitOtherFile: (userId, file, fileType) => axios
+        .post(`${baseURL}/application/${userId}/document/${fileType}`, file),
 };
 
 const data = {
@@ -49,12 +55,13 @@ const data = {
     getProcesses: () => axios.get(`${baseURL}/process`),
     getCourses: () => axios.get(`${baseURL}/course`),
     getShoolYears: () => axios.get(`${baseURL}/school_years`),
+    getDocumentTypesStatus: () => axios.get(`${baseURL}/document/type`),
 };
 
 const processes = {
     getAll: () => axios.get(`${baseURL}/process`),
     saveProcess: (process) => axios(getProcessOptions(process)),
-    submitFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/payment/document`, file),
+    submitCsvFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/payment/document`, file),
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
 };
 
