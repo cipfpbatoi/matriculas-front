@@ -6,5 +6,6 @@ export default {
   schoolYears: ["1", "2", "FCT"],
   processes: [], 
   documentTypes: [],
+  processTypes: [],
   user: {},
 }

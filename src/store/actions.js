@@ -18,48 +18,17 @@ export default {
                     context.commit('setLoaded', false);
                     reject(err);
                 });
-            // Se repite lo mismo para Courses, Status, Schoole_years. Cambiar a Promises.all
-            API.data.getStatus()
+            // Se repite lo mismo para Courses, Status, ... Cambiar a Promises.all
+            const data = ['Courses', 'Status', 'PaymentStatus', 'DocumentTypes', 'ProcessTypes'];
+            data.forEach(resource => API.data['get' + resource]()
                 .then((resp) => {
-                    context.commit('setStatus', resp.data.data);
+                    context.commit('set' + resource, resp.data.data);
                     context.commit('setLoaded', true);
-//                    resolve(resp.data.data);
                 })
                 .catch(() => {
                     context.commit('setLoaded', false);
-//                    reject(err);
-                });
-            API.data.getCourses()
-                .then((resp) => {
-                    context.commit('setCourses', resp.data.data);
-                    context.commit('setLoaded', true);
-//                    resolve(resp.data.data);
                 })
-                .catch(() => {
-                    context.commit('setLoaded', false);
-//                    reject(err);
-                });
-            API.data.getPaymentStatus()
-                .then((resp) => {
-                    context.commit('setPaymentStatus', resp.data.data);
-                    context.commit('setLoaded', true);
-//                    resolve(resp.data.data);
-                })
-                .catch(() => {
-                    context.commit('setLoaded', false);
-//                    reject(err);
-                });
-            API.data.getDocumentTypesStatus()
-                .then((resp) => {
-                    context.commit('setDocTypes', resp.data.data);
-                    context.commit('setLoaded', true);
-//                    resolve(resp.data.data);
-                })
-                .catch(() => {
-                    context.commit('setLoaded', false);
-//                    reject(err);
-                });
-
+            )
         })
     },
     async login(context, credentials) {

@@ -53,16 +53,18 @@ const data = {
     getStatus: () => axios.get(`${baseURL}/application/status`),
     getPaymentStatus: () => axios.get(`${baseURL}/payment/status`),
     getProcesses: () => axios.get(`${baseURL}/process`),
+    getProcessTypes: () => axios.get(`${baseURL}/process/type`),
     getCourses: () => axios.get(`${baseURL}/course`),
     getShoolYears: () => axios.get(`${baseURL}/school_years`),
-    getDocumentTypesStatus: () => axios.get(`${baseURL}/document/type`),
+    getDocumentTypes: () => axios.get(`${baseURL}/document/type`),
 };
 
 const processes = {
     getAll: () => axios.get(`${baseURL}/process`),
     saveProcess: (process) => axios(getProcessOptions(process)),
-    submitCsvFile: (userId, file) => axios.post(`${baseURL}/application/${userId}/payment/document`, file),
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
+    submitCsvFile: (processId, file) => axios.post(`${baseURL}/process/${processId}/user`, file),
+    getStudents: (processId) => axios.get(`${baseURL}/process/${processId}/user`),
 };
 
 const users = {

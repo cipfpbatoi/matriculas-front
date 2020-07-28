@@ -21,6 +21,9 @@
       </v-card-title>
 
       <v-data-table item-key="id" :headers="headers" :items="items" :search="search">
+        <template v-slot:item.type="{ item }">
+          <span>{{ showTypeName(item.type) }}</span>
+        </template>
         <template v-slot:item.start_date="{ item }">
           <span>{{ showDate(item.start_date) }}</span>
         </template>
@@ -39,9 +42,10 @@
             @click="openDialog(item)"
           >mdi-pencil</v-icon>
           <v-icon
-            title="Pujar fitxer CSV"
+            title="Pujar CSV alumnes preinscrits"
             class="primary--text"
             @click="openFileDialog(item)"
+            :disabled="item.type==1"
           >mdi-upload</v-icon>
           <v-icon
             title="Eliminar convocatòria"
@@ -74,10 +78,17 @@
                 <v-col cols="12" md="1">
                   <v-text-field v-model="dialog.item.id" label="Id" disabled></v-text-field>
                 </v-col>
-                <v-col cols="12" md="2">
-                  <v-text-field v-model="dialog.item.type" label="Tipo" pattern="[1|2]"></v-text-field>
+                <v-col cols="12" md="4">
+                  <v-select
+                    v-model="dialog.item.type"
+                    :items="processTypes"
+                    item-text="name"
+                    item-value="id"
+                    label="Tipus de convocatòria"
+                    required
+                  ></v-select>
                 </v-col>
-                <v-col cols="9">
+                <v-col cols="7">
                   <v-text-field v-model="dialog.item.name" label="Nom" required></v-text-field>
                 </v-col>
               </v-row>
@@ -126,15 +137,11 @@
           <span class="headline">Pujar fitxer CSV d'alumnes</span>
         </v-card-title>
         <v-card-text>
-          <v-alert
-            type="warning"
-          >ATENCIÓ: quan li dones a 'GUARDA' els alumnes del fitxer que puges 
-            s'afegiran als que hi ha preinscrits per a aquesta convocatòria</v-alert>
-          <v-text-field
-            v-model="fileDialog.process.name"
-            label="Convocatòria"
-            readonly
-          ></v-text-field>
+          <v-alert type="warning">
+            ATENCIÓ: quan li dones a 'GUARDA' els alumnes del fitxer que puges
+            s'afegiran als que hi ha preinscrits per a aquesta convocatòria
+          </v-alert>
+          <v-text-field v-model="fileDialog.process.name" label="Convocatòria" readonly></v-text-field>
           <v-file-input
             v-model="fileDialog.file"
             show-size
@@ -178,11 +185,7 @@
           <span class="headline">Enviar enllaç de matrícula</span>
         </v-card-title>
         <v-card-text>
-          <v-text-field
-            v-model="dniDialog.processName"
-            label="Convocatòria"
-            readonly
-          ></v-text-field>
+          <v-text-field v-model="dniDialog.processName" label="Convocatòria" readonly></v-text-field>
           <v-text-field
             v-model="dniDialog.dniAlumn"
             :rules="[rules.required, rules.dni]"
@@ -230,7 +233,7 @@ export default {
       fileDialog: {
         showed: false,
         loading: false,
-        process: {},
+        process: {}
       },
       dniDialog: {
         showed: false,
@@ -239,18 +242,18 @@ export default {
         processCode: ""
       },
       rules: {
-          required: value => !!value || 'Camp obligatori',
-          counter: value => value.length <= 20 || 'Max 20 caracters',
-          email: value => {
-            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            return pattern.test(value) || 'Invalid e-mail.';
-          },
-          dni: value => {
-            const pattern = /^([A-Z]|[0-9]){2}[0-9]{7}[A-Z]$/
-            return pattern.test(value) || 'Dni invàlid'
-          },
-      },
-    }
+        required: value => !!value || "Camp obligatori",
+        counter: value => value.length <= 20 || "Max 20 caracters",
+        email: value => {
+          const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return pattern.test(value) || "Invalid e-mail.";
+        },
+        dni: value => {
+          const pattern = /^([A-Z]|[0-9]){2}[0-9]{7}[A-Z]$/;
+          return pattern.test(value) || "Dni invàlid";
+        }
+      }
+    };
   },
   mounted() {
     this.getData();
@@ -262,9 +265,18 @@ export default {
     },
     editing() {
       return this.dialog.item.id;
+    },
+    processTypes() {
+      return this.$store.getters.getProcessTypes;
     }
   },
   methods: {
+    getData() {
+      this.$store
+        .dispatch("loadData")
+        .then()
+        .catch(err => this.manageError(err, "Error loading data", "error"));
+    },
     saveProcess() {
       let process = Object.assign({}, this.dialog.item);
       if (typeof process.start_date === "string") {
@@ -291,6 +303,9 @@ export default {
     showDate(date) {
       return date ? new Date(date).toLocaleDateString() : "---";
     },
+    showTypeName(type) {
+      return this.processTypes.find(item => item.id == type).name;
+    },
     openDialog(item) {
       if (item) {
         this.dialog.item = Object.assign({}, item);
@@ -304,11 +319,19 @@ export default {
       this.dialog.showed = true;
     },
     manageError(err, msg, type) {
-      this.messages.push({
-        msg: msg + " - " + err.response.data.error,
-        type,
-        show: true
-      });
+      if (Array.isArray(err.response.data.error)) {
+        err.response.data.error.forEach(error =>this.messages.push({
+          msg: msg + " - " + error.error,
+          type,
+          show: true
+        }))
+      } else {
+        this.messages.push({
+          msg: msg + " - " + err.response.data.error,
+          type,
+          show: true
+        })
+      }
       if (err.response.status === 401) {
         let msgToken = "";
         if (/expired/i.test(err.response.data.error)) {
@@ -339,7 +362,7 @@ export default {
           })
           .catch(err => {
             this.dialog.showed = false;
-            this.manageError(err, "Error saving process", "error");
+            this.manageError(err, "Error deleting process", "error");
           });
       }
     },
@@ -365,26 +388,25 @@ export default {
         }, TIMEOUT);
         let formData = new FormData();
         formData.append(
-          this.fileDialog.field,
+          "user_list_file",
           this.fileDialog.file,
           this.fileDialog.file.name
         );
-        API.process
-          .submitFile(this.user.id, formData)
+        API.processes.submitCsvFile(this.fileDialog.process.id, formData)
           .then(response => {
             clearTimeout(dialogClearer);
             this.fileDialog.showed = false;
-            alert("msg ok + cambiar fichero");
+            this.messages.push({
+              msg: "Fitxer pujat. Afegints " + response.data.data.length + ' nous alumnes',
+              type: "success",
+              show: true
+            });
             console.log(response);
           })
           .catch(err => {
             clearTimeout(dialogClearer);
             this.fileDialog.loading = false;
-            this.messages.push({
-              msg: "Error uploading file - " + err.response.data.error,
-              type: "error",
-              show: true
-            });
+            this.manageError(err, "Error uploading file", "error");
           });
       } else {
         alert("No has seleccionat cap fitxer");

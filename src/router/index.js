@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Enrollments from '@/views/Enrollments'
 import Enrollment from '@/views/Enrollment';
 import Processes from '@/views/Processes'
+import ProcessStudents from '@/views/ProcessStudents'
 import Login from '@/views/Login'
 import NotFound from '@/views/NotFound';
 Vue.use(VueRouter)
@@ -54,6 +55,12 @@ const routes = [
     path: '/processes',
     name: 'processes',
     component: Processes,
+    beforeEnter: ifAuthenticated,
+  },
+  {
+    path: '/processes/:processId/students',
+    name: 'processStudents',
+    component: ProcessStudents,
     beforeEnter: ifAuthenticated,
   },
   {

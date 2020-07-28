@@ -72,4 +72,7 @@ export default {
   getDocTypeInfo: (state) => (id) => {
     return state.documentTypes.find(item => item.id === id);
   },
+  getProcessTypes: (state) => {
+    return state.processTypes;
+  },
 }

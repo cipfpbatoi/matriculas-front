@@ -386,17 +386,10 @@ export default {
 
   methods: {
     getData() {
-      // Load the status if not loaded
       this.$store
         .dispatch("loadData")
         .then()
-        .catch(err =>
-          this.messages.push({
-            msg: "Error loading status - " + err,
-            type: "error",
-            show: true
-          })
-        );
+        .catch(err => this.manageError(err, "Error loading data", "error"));
     },
     showData() {
       this.dialogProces = false;

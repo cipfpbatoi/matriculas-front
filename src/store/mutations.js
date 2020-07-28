@@ -28,7 +28,7 @@ export default {
   setLoaded (state, value) {
       state.loaded = value;
   },
-  setDocTypes (state, data) {
+  setDocumentTypes (state, data) {
     state.documentTypes = data;
     state.documentTypes.forEach(type => {
       switch (type.id) {
@@ -42,6 +42,9 @@ export default {
           type.icon = 'mdi-file-check-outline';
       } 
     })
+  },
+  setProcessTypes (state, data) {
+    state.processTypes = data;
   },
   setUser (state, user) {
       state.user = user;

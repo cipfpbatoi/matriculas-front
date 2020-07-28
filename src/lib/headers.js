@@ -1,9 +1,74 @@
+const processStudents = [
+  {
+    text: "Id",
+    align: "start",
+    sortable: true,
+    value: "id",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Nom",
+    align: "start",
+    sortable: true,
+    value: "name",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "1r Cognom",
+    align: "start",
+    sortable: true,
+    value: "surname1",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "2n Cognom",
+    align: "start",
+    sortable: true,
+    value: "surname2",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "DNI",
+    align: "end",
+    sortable: false,
+    value: "dni",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Cicle",
+    align: "start",
+    sortable: true,
+    value: "course",
+    class: "primary--text text-subtitle-2",
+  },
+  {
+    text: "Curs",
+    sortable: true,
+    value: "school_year",
+    class: "primary--text  text-subtitle-2",
+  },
+  {
+    text: "Actiu",
+    sortable: true,
+    value: "activated",
+    class: "primary--text text-subtitle-2",
+    type: 1,
+  },
+]
+
 const processes = [
   {
     text: "Id",
     align: "start",
     sortable: true,
     value: "id",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
+    text: "Tipo",
+    align: "start",
+    sortable: true,
+    value: "type",
     class: "primary--text  text-subtitle-2"
   },
   {
@@ -28,7 +93,7 @@ const processes = [
     class: "primary--text  text-subtitle-2"
   },
   {
-    text: "Cod",
+    text: "Cod.",
     align: "start",
     sortable: true,
     value: "code",
@@ -160,4 +225,5 @@ const enrollments = [
 export default { 
   enrollments,
   processes,
+  processStudents,
 };
