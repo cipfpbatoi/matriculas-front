@@ -268,7 +268,7 @@ import headers from "@/lib/headers";
 const DEFAULT_SIZE_PAGE = 25;
 
 export default {
-  name: "enrollment",
+  name: "enrollments",
   props: ["processId", "status"],
   data() {
     return {
@@ -363,7 +363,9 @@ export default {
         this.$store.dispatch("logout");
         return "Totes les convocatòries";
       }
-      return this.currentProcess ? this.currentProcess.name : "Totes les convocatòries";
+      return this.currentProcess
+        ? this.currentProcess.name
+        : "Totes les convocatòries";
     },
     statusForChange() {
       return this.$store.getters.getSelectableStatus;
@@ -453,8 +455,9 @@ export default {
           this.loading = false;
           this.pagination.page = Number(response.data.data.page);
           this.pagination.more = response.data.data.more;
-          this.pagination.pageSize = Number(response.data.data.sizePage);
-          this.items = response.data.data.applications;
+          this.pagination.pageSize = Number(response.data.data.page_size);
+          this.items = response.data.data.items;
+          console.log(this.pagination);
         })
         .catch(err => {
           this.loading = false;
@@ -681,6 +684,27 @@ export default {
     },
     viewEnrollment(item) {
       this.$router.push({ name: "enrollment", params: { id: item.id, item } });
+    },
+    manageError(err, msg, type) {
+      this.messages.push({
+        msg: msg + " - " + err.response.data.error,
+        type,
+        show: true
+      });
+      if (err.response.status === 401) {
+        let msgToken = "";
+        if (/expired/i.test(err.response.data.error)) {
+          msgToken = "Tu token ha caducado. Debes loguearte de nuevo";
+        } else {
+          msgToken = "No estás logueado. Debes loguearte";
+        }
+        this.messages.push({
+          msg: msgToken,
+          type: "error",
+          show: true
+        });
+        this.$router.push({ name: "login", params: { msgToken } });
+      }
     }
   }
 };

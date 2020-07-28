@@ -1,9 +1,10 @@
 const ID_STATUS_INICIADO = 1; // Para filtrar los estados como este o inferiores
 const INSURANZE_CARD_PAY = 2; // Tipo de pago con tarjeta
+const MAX_PROCESESS_IN_MENU = 5;  // Les convocatòries que apareixen en el menú
 
 export default {
   isCardPayment: () => (id) => {
-      return id === INSURANZE_CARD_PAY;
+    return id === INSURANZE_CARD_PAY;
   },
   getStatus: (state) => {
     return state.status;
@@ -38,18 +39,23 @@ export default {
     return state.user.token;
   },
   getUser: (state) => {
-    return state.user.name 
+    return state.user.name
       ? state.user.name + ' ' + state.user.surname
       : '';
   },
   getMenu: (state) => {
-    if (state.user.token) {
+    if (state.user.token || localStorage.token) {
       let menu = [];
-      state.processes.forEach(item => menu.push({
-        name: item.name,
-        path: '/enrollments/process/' + item.id,
-        icon: 'mdi-folder-lock' + (item.type === 2 ? '-open':''),
-      }))
+//      const max_items = Math.min(MAX_PROCESESS_IN_MENU, state.processes.length);
+      const processesOrdered = state.processes
+        .sort((itemA, itemB) => itemA.end_date < itemB.end_date)
+        .slice(0, MAX_PROCESESS_IN_MENU);
+      processesOrdered.forEach(item => menu.push({
+          name: item.name,
+          path: '/enrollments/process/' + item.id,
+          icon: 'mdi-folder-lock' + (item.type === 2 ? '-open' : ''),
+        })
+      )
       return menu;
     }
     return [

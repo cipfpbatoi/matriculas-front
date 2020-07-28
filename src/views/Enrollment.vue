@@ -7,7 +7,10 @@
       <v-card-title>
         {{ alumn }}
         <v-spacer></v-spacer>
-        <v-btn color="warning" @click="resetPsw">Reset password</v-btn>
+        <v-btn v-if="item.type==2"
+          color="warning" 
+          @click="resetPsw"
+        >Reset password</v-btn>
       </v-card-title>
       <v-card-subtitle>Matrícula</v-card-subtitle>
 

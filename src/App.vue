@@ -81,7 +81,8 @@ export default {
   }),
   computed: {
     logged() {
-      return this.$store.getters.getToken;
+      return localStorage.token;
+//      return this.$store.getters.getToken;
     },
     user() {
       return this.$store.getters.getUser;

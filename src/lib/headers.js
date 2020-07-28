@@ -28,6 +28,21 @@ const processes = [
     class: "primary--text  text-subtitle-2"
   },
   {
+    text: "Cod",
+    align: "start",
+    sortable: true,
+    value: "code",
+    class: "primary--text  text-subtitle-2",
+    type: 1,
+  },
+  {
+    text: "URL",
+    align: "start",
+    sortable: true,
+    value: "process_form_url",
+    class: "primary--text  text-subtitle-2"
+  },
+  {
     text: "Fitxer CSV",
     align: "start",
     sortable: false,

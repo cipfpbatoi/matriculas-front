@@ -27,6 +27,11 @@
         <template v-slot:item.end_date="{ item }">
           <span>{{ showDate(item.end_date) }}</span>
         </template>
+        <template v-slot:item.process_form_url="{ item }">
+          <a :href="item.process_form_url" target="_blank">
+            <v-icon color="primary" class="mr-2">mdi-link-variant</v-icon>
+          </a>
+        </template>
         <template v-slot:item.file="{ item }">
           <a v-if="item.file" :href="item.file" target="_blank">
             <v-icon class="mr-2">mdi-file-check-outline</v-icon>
@@ -48,6 +53,16 @@
             class="primary--text"
             @click="deleteProcess(item)"
           >mdi-delete</v-icon>
+          <v-icon
+            title="Vore matrícules"
+            class="primary--text"
+            @click="$router.push('/enrollments/process/' + item.id)"
+          >mdi-account-multiple</v-icon>
+          <v-icon
+            title="Enviar enllaç a DNI"
+            class="primary--text"
+            @click="openDniDialog(item)"
+          >mdi-card-account-details</v-icon>
         </template>
       </v-data-table>
     </v-card>
@@ -73,7 +88,11 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="dialog.item.start_date" label="Data d'inici" readonly></v-text-field>
+                  <v-text-field
+                    :value="dialog.item.start_date + ' 00:00:00'"
+                    label="Data d'inici"
+                    readonly
+                  ></v-text-field>
                   <v-date-picker
                     v-model="dialog.item.start_date"
                     label="Data d'inici"
@@ -82,7 +101,11 @@
                   ></v-date-picker>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-label>Data de fí</v-label>
+                  <v-text-field
+                    :value="dialog.item.end_date + ' 23:59:59'"
+                    label="Data de fí"
+                    readonly
+                  ></v-text-field>
                   <v-date-picker
                     v-model="dialog.item.end_date"
                     label="Data de fí"
@@ -102,7 +125,7 @@
       </v-card>
     </v-dialog>
 
-      <v-dialog v-model="fileDialog.showed" persistent max-width="500px">
+    <v-dialog v-model="fileDialog.showed" persistent max-width="500px">
       <v-card>
         <v-card-title class="primary--text">
           <span class="headline">Canvia fitxer d'alumnes</span>
@@ -147,13 +170,44 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dniDialog.showed" persistent max-width="500px">
+      <v-card>
+        <v-card-title class="primary--text">
+          <span class="headline">Enviar enllaç de matrícula</span>
+        </v-card-title>
+        <v-card-text>
+          <v-text-field>
+            v-model="dniDialog.dniAlumn"
+            :rules="[rules.required, rules.dni]"
+            label="Dni de l'alumne"
+            required
+          </v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="blue darken-1"
+            text
+            :disabled="dniDialog.loading"
+            @click="dniDialog.showed = false"
+          >Tanca</v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            :disabled="dniDialog.loading || !dniDialog.dniAlumn"
+            @click="sendLink"
+          >Enviar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
 const TIMEOUT = 15000;
 
-import API from "@/services/api"; 
+import API from "@/services/api";
 
 import headers from "@/lib/headers";
 
@@ -170,9 +224,30 @@ export default {
       fileDialog: {
         showed: false,
         loading: false
-      }
+      },
+      dniDialog: {
+        showed: false,
+        loading: false,
+        dniAlumn: "",
+        processCode: ""
+      },
+      rules: {
+          required: value => !!value || 'Camp obligatori',
+          counter: value => value.length <= 20 || 'Max 20 caracters',
+          email: value => {
+            const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            return pattern.test(value) || 'Invalid e-mail.',
+          dni: value => {
+            const pattern = /^([A-Z]|[0-9]){2}[0-9]{7}[A-Z]$/
+            return pattern.test(value) || 'Dni invàlid',
+          }
+          },
     };
   },
+  mounted() {
+    this.getData();
+  },
+
   computed: {
     items() {
       return this.$store.getters.getProcesses;
@@ -184,25 +259,26 @@ export default {
   methods: {
     saveProcess() {
       let process = Object.assign({}, this.dialog.item);
-      if (typeof process.start_date === 'string') {
-        process.start_date = (process.start_date + ' 00:00:00');
+      if (typeof process.start_date === "string") {
+        process.start_date = process.start_date + " 00:00:00";
       }
-      if (typeof process.end_date === 'string') {
-        process.end_date = (process.end_date + ' 23:59:59');
+      if (typeof process.end_date === "string") {
+        process.end_date = process.end_date + " 23:59:59";
       }
-      this.$store.dispatch('saveProcess', process)
-      .then(response => {
-              this.dialog.showed = false;
-        this.messages.push({
-        msg: 'Guardada la convocatòria amb id ' + response.id,
-        type: 'success',
-        show: true
-      })
-      })
-      .catch(err => {
-        this.dialog.showed = false;
-        this.manageError(err, "Error saving process", "error")
-      })
+      this.$store
+        .dispatch("saveProcess", process)
+        .then(response => {
+          this.dialog.showed = false;
+          this.messages.push({
+            msg: "Guardada la convocatòria amb id " + response.id,
+            type: "success",
+            show: true
+          });
+        })
+        .catch(err => {
+          this.dialog.showed = false;
+          this.manageError(err, "Error saving process", "error");
+        });
     },
     showDate(date) {
       return date ? new Date(date).toLocaleDateString() : "---";
@@ -214,8 +290,8 @@ export default {
         this.dialog.item.end_date = item.end_date.split("T")[0];
       } else {
         this.dialog.item = {};
-        this.dialog.item.start_date = '';
-        this.dialog.item.end_date = '';
+        this.dialog.item.start_date = "";
+        this.dialog.item.end_date = "";
       }
       this.dialog.showed = true;
     },
@@ -241,20 +317,22 @@ export default {
       }
     },
     deleteProcess(item) {
-      if (confirm('Segur que vols eliminar la convocatòria "' + item.name + '"?')) {
-        this.$store.dispatch('delProcess', item)
-        .then(() => {
-          this.messages.push({
-            msg: 'Eliminada la convocatòria ' + item.id,
-            type: 'success',
-            show: true
+      if (
+        confirm('Segur que vols eliminar la convocatòria "' + item.name + '"?')
+      ) {
+        this.$store
+          .dispatch("delProcess", item)
+          .then(() => {
+            this.messages.push({
+              msg: "Eliminada la convocatòria " + item.id,
+              type: "success",
+              show: true
+            });
           })
-
-        })
-        .catch(err => {
-          this.dialog.showed = false;
-          this.manageError(err, "Error saving process", "error")
-        })
+          .catch(err => {
+            this.dialog.showed = false;
+            this.manageError(err, "Error saving process", "error");
+          });
       }
     },
     openFileDialog(item) {
@@ -262,6 +340,12 @@ export default {
       this.fileDialog.loading = false;
       this.fileDialog.process = item;
       this.fileDialog.showed = true;
+    },
+    openDniDialog(item) {
+      this.dniDialog.dniAlumn = "";
+      this.dniDialog.loading = false;
+      this.dniDialog.processCode = item.code;
+      this.dniDialog.showed = true;
     },
     submitFile() {
       if (this.fileDialog.file) {
@@ -271,26 +355,34 @@ export default {
           this.fileDialog.loading = false;
         }, TIMEOUT);
         let formData = new FormData();
-        formData.append(this.fileDialog.field, this.fileDialog.file, this.fileDialog.file.name)
-        API.process.submitFile(this.user.id, formData)
-        .then((response) => {
-          clearTimeout(dialogClearer);
-          this.fileDialog.showed = false;
-          alert('msg ok + cambiar fichero');
-          console.log(response)
-        })
-        .catch((err) => {
-          clearTimeout(dialogClearer);
-          this.fileDialog.loading = false;
-              this.messages.push({
-                msg: "Error uploading file - " + err.response.data.error,
-                type: "error",
-                show: true
-              })
-        })
+        formData.append(
+          this.fileDialog.field,
+          this.fileDialog.file,
+          this.fileDialog.file.name
+        );
+        API.process
+          .submitFile(this.user.id, formData)
+          .then(response => {
+            clearTimeout(dialogClearer);
+            this.fileDialog.showed = false;
+            alert("msg ok + cambiar fichero");
+            console.log(response);
+          })
+          .catch(err => {
+            clearTimeout(dialogClearer);
+            this.fileDialog.loading = false;
+            this.messages.push({
+              msg: "Error uploading file - " + err.response.data.error,
+              type: "error",
+              show: true
+            });
+          });
       } else {
-        alert('No has seleccionat cap fitxer');
+        alert("No has seleccionat cap fitxer");
       }
+    },
+    sendLink() {
+      alert("Se enviará...");
     }
   }
 };
