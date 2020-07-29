@@ -62,6 +62,7 @@ const routes = [
     name: 'processStudents',
     component: ProcessStudents,
     beforeEnter: ifAuthenticated,
+    props: true,
   },
   {
     path: '/login',

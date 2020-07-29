@@ -30,6 +30,9 @@
         <template v-slot:item.end_date="{ item }">
           <span>{{ showDate(item.end_date) }}</span>
         </template>
+        <template v-slot:item.code="{ item }">
+          <span>{{ item.type == 1 ? '---' : item.code }}</span>
+        </template>
         <template v-slot:item.process_form_url="{ item }">
           <a :href="item.process_form_url" :title="item.process_form_url" target="_blank">
             <v-icon color="primary" class="mr-2">mdi-link-variant</v-icon>
@@ -42,12 +45,6 @@
             @click="openDialog(item)"
           >mdi-pencil</v-icon>
           <v-icon
-            title="Pujar CSV alumnes preinscrits"
-            class="primary--text"
-            @click="openFileDialog(item)"
-            :disabled="item.type==1"
-          >mdi-upload</v-icon>
-          <v-icon
             title="Eliminar convocatòria"
             class="primary--text"
             @click="deleteProcess(item)"
@@ -56,8 +53,18 @@
             title="Vore matrícules"
             class="primary--text"
             @click="$router.push('/enrollments/process/' + item.id)"
-          >mdi-account-multiple</v-icon>
-          <v-icon
+          >mdi-account-multiple-check</v-icon>
+          <v-icon v-if="item.type==2"
+            title="Pujar CSV alumnes preinscrits"
+            class="primary--text"
+            @click="openFileDialog(item)"
+          >mdi-upload</v-icon>
+          <v-icon v-if="item.type==2"
+            title="Vore preinscrits"
+            class="primary--text"
+            @click="$router.push('/processes/' + item.id + '/students')"
+          >mdi-account-multiple-outline</v-icon>
+          <v-icon v-if="item.type==1"
             title="Enviar enllaç a DNI"
             class="primary--text"
             @click="openDniDialog(item)"
@@ -304,7 +311,8 @@ export default {
       return date ? new Date(date).toLocaleDateString() : "---";
     },
     showTypeName(type) {
-      return this.processTypes.find(item => item.id == type).name;
+      const processType = this.processTypes.find(item => item.id == type);
+      return processType ? processType.name : type;
     },
     openDialog(item) {
       if (item) {

@@ -54,6 +54,12 @@ const processStudents = [
     class: "primary--text text-subtitle-2",
     type: 1,
   },
+  {
+    text: "Accions",
+    value: "actions",
+    sortable: false,
+    class: "primary--text  text-subtitle-2"
+  },
 ]
 
 const processes = [

@@ -21,6 +21,9 @@ export default {
   getProcesses: (state) => {
     return state.processes;
   },
+  getProcess: (state) => (id) => {
+    return state.processes.find(item => item.id === id);
+  },
   getActualProcess: (state) => {
     if (!state.processes.length) return {};
     let now = new Date();

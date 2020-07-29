@@ -65,6 +65,7 @@ const processes = {
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
     submitCsvFile: (processId, file) => axios.post(`${baseURL}/process/${processId}/user`, file),
     getStudents: (processId) => axios.get(`${baseURL}/process/${processId}/user`),
+    delStudent: (processId, student) => axios.delete(`${baseURL}/process/${processId}/user/${student}`),
 };
 
 const users = {
