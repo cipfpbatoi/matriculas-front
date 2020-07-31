@@ -391,9 +391,8 @@ export default {
       if (this.fileDialog.file) {
         this.fileDialog.loading = true;
         let dialogClearer = setTimeout(() => {
-          alert("Temps d'espera esgotat");
           this.fileDialog.loading = false;
-        }, TIMEOUT);
+        }, 36000);
         let formData = new FormData();
         formData.append(
           "user_list_file",
