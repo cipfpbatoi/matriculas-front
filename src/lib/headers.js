@@ -38,7 +38,7 @@ const processStudents = [
     text: "Cicle",
     align: "start",
     sortable: true,
-    value: "course",
+    value: "course.name",
     class: "primary--text text-subtitle-2",
   },
   {

@@ -45,7 +45,7 @@ const routes = [
     beforeEnter: ifAuthenticated,
   },
   {
-    path: '/enrollment/:id',
+    path: '/enrollment/:enrollmentId',
     name: 'enrollment',
     component: Enrollment,
     props: true,

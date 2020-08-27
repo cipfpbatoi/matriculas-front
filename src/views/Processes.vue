@@ -221,7 +221,7 @@
 </template>
 
 <script>
-const TIMEOUT = 15000;
+//const TIMEOUT = 15000;
 
 import API from "@/services/api";
 
@@ -390,10 +390,10 @@ export default {
     submitFile() {
       if (this.fileDialog.file) {
         this.fileDialog.loading = true;
-        let dialogClearer = setTimeout(() => {
-          alert("Temps d'espera esgotat");
-          this.fileDialog.loading = false;
-        }, TIMEOUT);
+        // let dialogClearer = setTimeout(() => {
+        //   alert("Temps d'espera esgotat");
+        //   this.fileDialog.loading = false;
+        // }, TIMEOUT);
         let formData = new FormData();
         formData.append(
           "user_list_file",
@@ -402,17 +402,16 @@ export default {
         );
         API.processes.submitCsvFile(this.fileDialog.process.id, formData)
           .then(response => {
-            clearTimeout(dialogClearer);
+//            clearTimeout(dialogClearer);
             this.fileDialog.showed = false;
             this.messages.push({
               msg: "Fitxer pujat. Afegints " + response.data.data.length + ' nous alumnes',
               type: "success",
               show: true
             });
-            console.log(response);
           })
           .catch(err => {
-            clearTimeout(dialogClearer);
+//            clearTimeout(dialogClearer);
             this.fileDialog.loading = false;
             this.manageError(err, "Error uploading file", "error");
           });

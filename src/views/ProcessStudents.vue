@@ -16,11 +16,18 @@
         ></v-text-field>
       </v-card-title>
 
-      <v-data-table item-key="id" :headers="headers" :items="items" :search="search">
-getCourseName
-        <template v-slot:item.course="{ item }">
-          <span>{{ getCourseName(item.course) }}</span>
-        </template>
+      <v-data-table 
+        item-key="id" 
+        :headers="headers" 
+        :items="items" 
+        :search="search"
+        :loading="loading"
+        loading-text="Carregant dades... Espere per favor"
+        disable-pagination
+        hide-default-footer
+        :sort-by.sync="sortBy"
+        :sort-desc.sync="sortDesc"
+      >
         <template v-slot:item.activated="{ item }">
           <v-icon
             :class="(item.activated?'success':'error')+'--text'"
@@ -35,6 +42,37 @@ getCourseName
           >mdi-delete</v-icon>
         </template>
       </v-data-table>
+
+      <v-row class="text-center pt-2">
+        <v-col cols="2">
+          Mostrando de
+          <strong>{{ (pagination.pageSize * (pagination.page -1) + 1 )}}</strong> hasta
+          <strong>{{ pagination.pageSize * (pagination.page -1) + items.length }}</strong>
+        </v-col>
+        <v-col cols="8">
+          <v-btn text :disabled="pagination.page <= 1" @click="firstPage">
+            <v-icon class="primary--text">mdi-chevron-double-left</v-icon>
+          </v-btn>
+          <v-btn text :disabled="pagination.page <= 1" @click="prevPage">
+            <v-icon class="primary--text">mdi-chevron-left</v-icon>
+          </v-btn>
+          <span class="primary--text">Pàgina {{ pagination.page }}</span>
+          <v-btn text :disabled="!pagination.more" @click="nextPage">
+            <v-icon class="primary--text">mdi-chevron-right</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col cols="2">
+          <v-select
+            v-model="pagination.pageSize"
+            :items="[10, 25, 50, 100]"
+            label="Matrícules per pàgina"
+            dense
+            required
+            @change="getProcessStudents"
+          ></v-select>
+        </v-col>
+      </v-row>
+
       <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="$router.push('/processes')">Tornar</v-btn>
@@ -48,6 +86,8 @@ import API from "@/services/api";
 
 import headers from "@/lib/headers";
 
+const DEFAULT_SIZE_PAGE = 25;
+
 export default {
   name: "ProcessStudents",
   props: ["processId"],
@@ -56,21 +96,54 @@ export default {
       items: [],
       search: "",
       headers: headers.processStudents,
-      messages: []
-    };
+      messages: [],
+      loading: true,
+      pagination: {
+        page: 1,
+        toPage: 0,
+        more: false,
+        pageSize: DEFAULT_SIZE_PAGE
+      },
+      sortDesc: false,
+      sortBy: ""
+    }
   },
   mounted() {
     this.getData();
     this.getProcessStudents();
   },
 
+  watch: {
+    $route(to, from) {
+      if (to === from) return;
+      this.getData();
+      this.getProcessStudents();
+    },
+    search: {
+      handler() {
+        this.pagination.page = 1; // tornem a vore la 1a pàgina
+        this.getProcessStudents();
+      },
+      deep: true
+    },
+    processId() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
+      this.getProcessStudents();
+    },
+    sortBy() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
+      this.getProcessStudents();
+    },
+    sortDesc() {
+      this.pagination.page = 1; // tornem a vore la 1a pàgina
+      this.getProcessStudents();
+    }
+  },
+
   computed: {
     process() {
       return this.$store.getters.getProcess(Number(this.processId)) || {};
     },
-    courses() {
-      return this.$store.getters.getCourses || [];
-    }
   },
 
   methods: {
@@ -81,23 +154,22 @@ export default {
         .catch(err => this.manageError(err, "Error loading data", "error"));
     },
     getProcessStudents() {
-      // load de enrollments
       this.loading = true;
       this.items = [];
-      console.log('#############'+this.processId);
+      let filters = this.getParams();
       API.processes
-        .getStudents(this.processId)
+        .getStudents(this.processId, filters.join("&"))
         .then(response => {
+          this.loading = false;
+          this.pagination.page = Number(response.data.data.page);
+          this.pagination.more = response.data.data.more;
+          this.pagination.pageSize = Number(response.data.data.page_size);
           this.items = response.data.data.items;
         })
         .catch(err => {
           this.loading = false;
           this.manageError(err, "Error loading students", "error");
         });
-    },
-    getCourseName(courseId) {
-      const course = this.courses.find(item => item.id == courseId);
-      return course ? course.name : courseId;
     },
     deleteStudent(student) {
       const studentName = `${student.surname1} ${student.surname2}, ${student.name}`;
@@ -141,7 +213,47 @@ export default {
         });
         this.$router.push({ name: "login", params: { msgToken } });
       }
-    }
+    },
+    prevPage() {
+      this.pagination.toPage = this.pagination.page - 1;
+      this.getProcessStudents();
+    },
+    nextPage() {
+      this.pagination.toPage = this.pagination.page + 1;
+      this.getProcessStudents();
+    },
+    firstPage() {
+      this.pagination.toPage = 1;
+      this.getProcessStudents();
+    },
+    getParams() {
+      let filters = [];
+      if (this.search) filters.push("search=" + this.search);
+      if (this.pagination.more || this.pagination.page > 1) {
+        if (this.pagination.toPage) {
+          filters.push("page=" + this.pagination.toPage);
+          this.pagination.toPage = 0;
+        } else {
+          filters.push("page=" + this.pagination.page);
+        }
+        if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
+        if (this.sortDesc) filters.push("order=DESC");
+      }
+      if (this.pagination.pageSize !== DEFAULT_SIZE_PAGE) {
+        filters.push("page_size=" + this.pagination.pageSize);
+      }
+      return filters;
+    },
+    apiName(field) {
+      switch (field) {
+        case "student.surname":
+          return "student";
+        case "course.name":
+          return "course";
+        default:
+          return field;
+      }
+    },
   }
 };
 </script>

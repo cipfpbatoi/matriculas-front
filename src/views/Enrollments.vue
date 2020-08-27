@@ -132,6 +132,12 @@
                 </template>
               </v-col>
               <v-col cols="12" sm="4">
+                <strong class="primary--text">Sol·licita convalidacions:</strong>
+                <v-icon
+                  small
+                  :class="(item.apply_for_recognize_modules?'sucess':'error')+'--text'"
+                >{{ item.apply_for_recognize_modules?'mdi-check':'mdi-window-close' }}</v-icon>
+                <br />
                 <template v-if="item.process.type==2">
                   <strong class="primary--text">Accepta Web Family:</strong>
                   <v-icon
@@ -159,6 +165,7 @@
                 {{ item.process.name }}
               </v-col>
               <v-col v-if="isCardPayment(item.insurance_payment_type)" cols="12" sm="4">
+                <strong class="primary--text">PAGAMENT AMB TARGETA</strong><br />
                 <strong class="primary--text">Codi operació:</strong>
                 {{ item.last_payment.operation_id }}
                 <br />
@@ -410,9 +417,11 @@ export default {
         } else {
           filters.push("page=" + this.pagination.page);
         }
-        filters.push("sizePage=" + this.pagination.pageSize);
         if (this.sortBy) filters.push("orderBy=" + this.apiName(this.sortBy));
         if (this.sortDesc) filters.push("order=DESC");
+      }
+      if (this.pagination.pageSize !== DEFAULT_SIZE_PAGE) {
+        filters.push("page_size=" + this.pagination.pageSize);
       }
       return filters;
     },
@@ -450,7 +459,6 @@ export default {
           this.pagination.more = response.data.data.more;
           this.pagination.pageSize = Number(response.data.data.page_size);
           this.items = response.data.data.items;
-          console.log(this.pagination);
         })
         .catch(err => {
           this.loading = false;
@@ -676,7 +684,8 @@ export default {
       }
     },
     viewEnrollment(item) {
-      this.$router.push({ name: "enrollment", params: { id: item.id, item } });
+//      this.$router.push({ name: "enrollment", params: { id: item.id, item } });
+      this.$router.push('/enrollment/' + item.id);
     },
     manageError(err, msg, type) {
       this.messages.push({

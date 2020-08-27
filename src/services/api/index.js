@@ -40,7 +40,7 @@ const enrollments = {
         .get(`${baseURL}/application` + (params ? `?${params}` : '')),
     getReport: (params) => axios
         .get(`${baseURL}/report/application` + (params ? `?${params}` : '')),
-    getOne: (id) => axios.get(`${baseURL}/application/${id}`),
+    getEnrollment: (id) => axios.get(`${baseURL}/application/${id}`),
     modifyStatus: (id, state) => axios
         .put(`${baseURL}/application/${id}/status`, `status=${state}`),
     submitPaymentFile: (userId, file) => axios
@@ -64,7 +64,7 @@ const processes = {
     saveProcess: (process) => axios(getProcessOptions(process)),
     delProcess: (id) => axios.delete(`${baseURL}/process/${id}`),
     submitCsvFile: (processId, file) => axios.post(`${baseURL}/process/${processId}/user`, file),
-    getStudents: (processId) => axios.get(`${baseURL}/process/${processId}/user`),
+    getStudents: (processId, params) => axios.get(`${baseURL}/process/${processId}/user` + (params ? `?${params}` : '')),
     delStudent: (processId, student) => axios.delete(`${baseURL}/process/${processId}/user/${student}`),
 };
 

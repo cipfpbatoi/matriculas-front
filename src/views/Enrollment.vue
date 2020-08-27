@@ -22,7 +22,7 @@
           <v-col cols="12" sm="4">
             <v-text-field v-model="item.type" label="Tipo" readonly></v-text-field>
           </v-col>
-          <v-col cols="12" sm="6">
+          <v-col cols="10" sm="5">
             <v-select
               v-model="item.status"
               :items="statusForChange"
@@ -31,6 +31,9 @@
               label="Estat"
               readonly
             ></v-select>
+          </v-col>
+          <v-col cols="2" sm="1">
+            <v-btn small color="warning" @click="statusDialog.showed = true">Canviar</v-btn>
           </v-col>
         </v-row>
         <v-row>
@@ -126,7 +129,7 @@
           <v-col cols="12" sm="2">
             <v-switch
               v-model="item.reserved_places"
-              :label="`${toSiNo(item.assistance_condition_accept)} plaça reservada`"
+              :label="`${toSiNo(item.reserved_places)} plaça reservada`"
               readonly
             ></v-switch>
           </v-col>
@@ -148,7 +151,7 @@
               <v-btn small color="warning" @click="openDialogAltres(doc)">Canviar {{ docTypeInfo(doc.type).name }}</v-btn>
             </span>
             -----
-              <v-btn small right color="warning" @click="openDialogAltres()">Nou document</v-btn>
+              <v-btn small right color="primary" @click="openDialogAltres()">Nou document</v-btn>
 
             </fieldset>
 
@@ -256,33 +259,77 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="statusDialog.showed" persistent max-width="400px">
+      <v-card>
+        <v-card-title class="primary--text">
+          <span class="headline">Canviar estat</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <p>
+              Indica el nou estat per a l'alumne
+              <strong>{{ item.student.surname +', ' + item.student.name }}</strong>
+            </p>
+            <v-select
+              v-model="statusDialog.status"
+              :items="statusForChange"
+              item-text="name"
+              item-value="id"
+              label="Nou estat"
+              required
+            ></v-select>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="statusDialog.showed = false">Tanca</v-btn>
+          <v-btn color="blue darken-1" text @click="canviaEstat">Canvia</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
 <script>
-const TIMEOUT = 15000;
+//const TIMEOUT = 15000;
 
 import API from "@/services/api"; 
 
 export default {
   name: "Enrollment",
-  props: ["id"],
+  props: ["enrollmentId"],
   data() {
     return {
+      item: {
+        student: {},
+        documents: [],
+        process: {},
+        course: {},
+        last_payment: {},
+      },
       messages: [],
       fileFee: null,
       fileDialog: {
         showed: false,
         loading: false
-      }
+      },
+      statusDialog: {
+        showed: false,
+      },
     };
   },
+  mounted() {
+    this.getData();
+    this.getEnrollment();
+  },
   computed: {
-    item() {
-      return this.$route.params.item;
-    },
+    // item() {
+    //   return this.$route.params.item;
+    // },
     alumn() {
-      return `${this.$route.params.item.student.surname},  ${this.$route.params.item.student.name}`;
+      return `${this.item.student.surname},  ${this.item.student.name}`;
     },
     statusForChange() {
       return this.$store.getters.getSelectableStatus;
@@ -292,6 +339,24 @@ export default {
     },
   },
   methods: {
+    getData() {
+      this.$store
+        .dispatch("loadData")
+        .then()
+        .catch(err => this.manageError(err, "Error loading data", "error"));
+    },
+    getEnrollment() {
+      API.enrollments
+        .getEnrollment(this.enrollmentId)
+        .then(response => {
+          this.item = response.data.data;
+          this.statusDialog.status = response.data.data.status;
+        })
+        .catch(err => {
+          this.loading = false;
+          this.manageError(err, "Error loading enrollment", "error");
+        });
+    },
     isCardPayment(type) {
       return this.$store.getters.isCardPayment(type);
     },
@@ -334,6 +399,38 @@ export default {
         : 'Nou fitxer';
       this.fileDialog.showed = true;
     },
+    canviaEstat() {
+      this.statusDialog.showed = false;
+        if (!this.statusDialog.status ||
+          this.item.status === this.statusDialog.status) {
+            this.messages.push({
+              msg: 'No has canviat l\'estat de l\'alumne',
+              type: "info",
+              show: true
+            });
+            return;
+        }
+          API.enrollments
+            .modifyStatus(
+              this.item.id,
+              this.statusDialog.status
+            )
+            .then(response => {
+              this.item.status = response.data.data.status;
+              this.messages.push({
+                msg: `Canviat l'estat de "${response.data.data.student.surname}, ${response.data.data.student.name}"`,
+                type: "success",
+                show: true
+              });
+            })
+            .catch(err =>
+              this.messages.push({
+                msg: "Error setting state - " + err.response.data.error,
+                type: "error",
+                show: true
+              })
+            );
+    },
     resetPsw() {
           API.users.resetPsw(this.item)
             .then(response => {
@@ -354,10 +451,10 @@ export default {
     submitFile() {
       if (this.fileDialog.file) {
         this.fileDialog.loading = true;
-        let dialogClearer = setTimeout(() => {
-          alert("Temps d'espera esgotat");
-          this.fileDialog.loading = false;
-        }, TIMEOUT);
+        // let dialogClearer = setTimeout(() => {
+        //   alert("Temps d'espera esgotat");
+        //   this.fileDialog.loading = false;
+        // }, TIMEOUT);
         let formData = new FormData();
         formData.append(this.fileDialog.field, this.fileDialog.file, this.fileDialog.file.name);
         const apiMethod = (this.fileDialog.field === 'file') 
@@ -365,7 +462,7 @@ export default {
           : 'submitPaymentFile';
         API.enrollments[apiMethod](this.item.id, formData, this.fileDialog.docType)
         .then((response) => {
-          clearTimeout(dialogClearer);
+//          clearTimeout(dialogClearer);
           this.fileDialog.showed = false;
               this.messages.push({
                 msg: "Fitxer pujat correctament",
@@ -375,7 +472,7 @@ export default {
           this.item[this.fileDialog.field + 'name'] = response.data.data[this.fileDialog.field + 'name'];
         })
         .catch((err) => {
-          clearTimeout(dialogClearer);
+//          clearTimeout(dialogClearer);
           this.fileDialog.loading = false;
               this.messages.push({
                 msg: "Error uploading file - " + err.response.data.error,
