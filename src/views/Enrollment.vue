@@ -433,9 +433,9 @@ export default {
     },
     resetPsw() {
           API.users.resetPsw(this.item)
-            .then(response => {
+            .then(() => {
               this.messages.push({
-                msg: `S'ha resetejat correctament la contrasenya de l'usuari "${response.data.data.student.name}"`,
+                msg: `S'ha resetejat correctament la contrasenya`,
                 type: "success",
                 show: true
               });

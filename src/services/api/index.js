@@ -72,8 +72,7 @@ const users = {
     login: (credentials) => axios.post(`${baseURL}/login_check`, credentials),
     refresh: (refreshToken) => axios.post(`${baseURL}/token/refresh`, refreshToken),
     profile: () => axios.get(`${baseURL}/user/profile`),
-    resetPsw: (user) => axios
-        .post(`${baseURL}/process/${user.id}/user/${user.student.dni}/credentials/reset`),
+    resetPsw: (user) => axios.post(`${baseURL}/process/${user.process.id}/user/${user.student.dni}/credentials/reset`),
 };
 
 export default {
