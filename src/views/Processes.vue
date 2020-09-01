@@ -73,6 +73,10 @@
       </v-data-table>
     </v-card>
 
+    <a :href="`${publicPath}files\template_user_list.ods`" target="_blank">
+      PlantillaPublic de fitxer ODS
+    </a>
+
     <v-dialog v-model="dialog.showed" persistent max-width="620px">
       <v-card>
         <v-card-title class="primary--text">
@@ -147,6 +151,10 @@
           <v-alert type="warning">
             ATENCIÓ: quan li dones a 'GUARDA' els alumnes del fitxer que puges
             s'afegiran als que hi ha preinscrits per a aquesta convocatòria
+          </v-alert>
+          <v-alert type="info">
+            Recorda que a l'exportar el fitxer ha d'haver possat com delimitador 
+            el PUNT I COMA 
           </v-alert>
           <v-text-field v-model="fileDialog.process.name" label="Convocatòria" readonly></v-text-field>
           <v-file-input
@@ -230,6 +238,7 @@ import headers from "@/lib/headers";
 export default {
   data() {
     return {
+      publicPath: process.env.BASE_URL,
       search: "",
       headers: headers.processes,
       messages: [],

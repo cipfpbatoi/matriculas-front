@@ -74,38 +74,10 @@
       </v-row>
 
       <v-card-actions>
-          <!-- <v-btn class="primary" @click="newStudentDialog()">Afegir alumne</v-btn> -->
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="$router.push('/processes')">Tornar</v-btn>
       </v-card-actions>
     </v-card>
-
-        <v-dialog v-model="studentDialog.showed" persistent max-width="400px">
-      <v-card>
-        <v-card-title class="primary--text">
-          <span class="headline">Afegir alumne</span>
-        </v-card-title>
-        <v-card-text>
-          <v-input
-          ></v-input>
-          <v-select
-            v-model="studentDialog.item.course"
-            :items="courses"
-            item-text="name"
-            item-value="id"
-            label="Cicle"
-            clearable
-          ></v-select>
-          <v-select v-model="studentDialog.item.schoolYear" :items="schoolYears" label="Curs" clearable></v-select>
-
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="statusDialog.showed = false">Tanca</v-btn>
-          <v-btn color="blue darken-1" text @click="canviaEstat">Canvia</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
   </v-container>
 </template>
