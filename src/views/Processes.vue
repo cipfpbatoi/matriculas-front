@@ -421,8 +421,9 @@ export default {
           })
           .catch(err => {
 //            clearTimeout(dialogClearer);
+            this.fileDialog.showed = false;
             this.fileDialog.loading = false;
-            this.manageError(err, "Error uploading file", "error");
+            this.manageError(err, "Error uploading file '" + this.fileDialog.file.name + "'", "error");
           });
       } else {
         alert("No has seleccionat cap fitxer");
