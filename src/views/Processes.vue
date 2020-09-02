@@ -74,7 +74,7 @@
     </v-card>
 
     <a :href="`${publicPath}files\template_user_list.ods`" target="_blank">
-      PlantillaPublic de fitxer ODS
+      Plantilla de fitxer ODS
     </a>
 
     <v-dialog v-model="dialog.showed" persistent max-width="620px">

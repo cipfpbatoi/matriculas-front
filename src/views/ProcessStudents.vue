@@ -8,12 +8,21 @@
         <h2>{{ process.name }} (preinscrits)</h2>
         <v-spacer></v-spacer>
         <v-text-field
-          v-model="search"
+          v-model="search.general"
           append-icon="mdi-magnify"
           label="Cerca"
           single-line
           hide-details
         ></v-text-field>
+          <v-spacer></v-spacer>
+          <v-select
+            v-model="search.course"
+            :items="courses"
+            item-text="name"
+            item-value="id"
+            label="Cicle"
+            clearable
+          ></v-select>
       </v-card-title>
 
       <v-data-table 
@@ -95,7 +104,13 @@ export default {
   data() {
     return {
       items: [],
-      search: "",
+      search: {
+        course: "",
+        schoolYear: "",
+        status: "",
+        process: "",
+        general: ""
+      },
       headers: headers.processStudents,
       messages: [],
       loading: true,
@@ -120,9 +135,12 @@ export default {
       this.getData();
       this.getProcessStudents();
     },
-    search() {
+    search: {
+      handler() {
         this.pagination.page = 1; // tornem a vore la 1a pàgina
         this.getProcessStudents();
+      },
+      deep: true
     },
     processId() {
       this.pagination.page = 1; // tornem a vore la 1a pàgina
@@ -141,6 +159,9 @@ export default {
   computed: {
     process() {
       return this.$store.getters.getProcess(Number(this.processId)) || {};
+    },
+    courses() {
+      return this.$store.getters.getCourses;
     },
   },
 
@@ -226,7 +247,8 @@ export default {
     },
     getParams() {
       let filters = [];
-      if (this.search) filters.push("search=" + this.search);
+      if (this.search.course) filters.push("course=" + this.search.course);
+      if (this.search.general) filters.push("search=" + this.search.general);
       if (this.pagination.more || this.pagination.page > 1) {
         if (this.pagination.toPage) {
           filters.push("page=" + this.pagination.toPage);
