@@ -73,7 +73,7 @@
       </v-data-table>
     </v-card>
 
-    <a :href="`${publicPath}files\template_user_list.ods`" target="_blank">
+    <a :href="`${publicPath}files/template_user_list.ods`" target="_blank">
       Plantilla de fitxer ODS
     </a>
 
